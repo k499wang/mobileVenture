@@ -11,4 +11,11 @@ describe('createQueue', () => {
     expect(results).toEqual(['a', 'b', 'c']);
     expect(log).toEqual(['a', 'b', 'c']);
   });
+  it('keeps running after an operation rejects', async () => {
+    const run = createQueue();
+    const failed = run(() => Promise.reject(new Error('billing down')));
+    const next = run(() => Promise.resolve('restored'));
+    await expect(failed).rejects.toThrow('billing down');
+    await expect(next).resolves.toBe('restored');
+  });
 });
