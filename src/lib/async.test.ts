@@ -19,3 +19,15 @@ describe('createQueue', () => {
     await expect(next).resolves.toBe('restored');
   });
 });
+
+describe('withTimeout', () => {
+  it('resolves with the value when the promise wins', async () => {
+    await expect(withTimeout(Promise.resolve(7), 50, 'fast')).resolves.toBe(7);
+  });
+  it('rejects with a labeled error when the deadline passes', async () => {
+    await expect(withTimeout(new Promise(() => undefined), 10, 'offerings')).rejects.toThrow('offerings timed out');
+  });
+  it('propagates the original rejection', async () => {
+    await expect(withTimeout(Promise.reject(new Error('nope')), 50, 'x')).rejects.toThrow('nope');
+  });
+});
