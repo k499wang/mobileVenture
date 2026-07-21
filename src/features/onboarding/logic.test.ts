@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { OnboardingStep } from '@/config/app-definition-types';
 import { appDefinition } from '@/config/app-definition';
 import { onboardingExamples } from '@/config/onboarding-examples';
-import { canAdvance, interpolate, stepIsVisible } from './logic';
+import { canAdvance, conditionMatches, hasAnswer, interpolate, stepIsVisible } from './logic';
 
 describe('onboarding logic', () => {
   const select: OnboardingStep = { id: 's', type: 'select', title: 'T', answerKey: 'goal', options: [] };
@@ -33,5 +33,13 @@ describe('onboarding logic', () => {
     const tracking = ids.indexOf('permission');
     expect(tracking).toBeGreaterThanOrEqual(0);
     expect(tracking).toBeLessThan(ids.indexOf('paywall'));
+  });
+});
+
+describe('conditionMatches', () => {
+  it('treats empty strings as missing for exists checks', () => {
+    expect(conditionMatches({ answer: 'name', exists: true }, { name: '' })).toBe(false);
+    expect(conditionMatches({ answer: 'name', exists: true }, { name: 'Ari' })).toBe(true);
+    expect(conditionMatches({ answer: 'name', exists: false }, {})).toBe(true);
   });
 });
