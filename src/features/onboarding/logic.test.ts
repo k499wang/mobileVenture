@@ -42,4 +42,9 @@ describe('conditionMatches', () => {
     expect(conditionMatches({ answer: 'name', exists: true }, { name: 'Ari' })).toBe(true);
     expect(conditionMatches({ answer: 'name', exists: false }, {})).toBe(true);
   });
+  it('matches includes against single answers and equals exactly', () => {
+    expect(conditionMatches({ answer: 'goal', includes: 'calm' }, { goal: 'calm' })).toBe(true);
+    expect(conditionMatches({ answer: 'goal', equals: 'calm' }, { goal: 'focus' })).toBe(false);
+    expect(conditionMatches({ answer: 'age', equals: 30 }, { age: 30 })).toBe(true);
+  });
 });
