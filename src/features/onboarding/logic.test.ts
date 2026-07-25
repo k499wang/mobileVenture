@@ -48,3 +48,11 @@ describe('conditionMatches', () => {
     expect(conditionMatches({ answer: 'age', equals: 30 }, { age: 30 })).toBe(true);
   });
 });
+
+describe('interpolate', () => {
+  it('joins multi-select answers and tidies missing values', () => {
+    expect(interpolate('You chose {{answers.topics}}.', { topics: ['sleep', 'focus'] })).toBe('You chose sleep, focus.');
+    expect(interpolate('Hi {{answers.name}}, welcome', {})).toBe('Hi, welcome');
+    expect(interpolate(undefined, {})).toBe('');
+  });
+});
