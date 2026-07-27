@@ -56,3 +56,13 @@ describe('interpolate', () => {
     expect(interpolate(undefined, {})).toBe('');
   });
 });
+
+describe('hasAnswer', () => {
+  it('rejects empty values and accepts real ones', () => {
+    expect(hasAnswer(undefined)).toBe(false);
+    expect(hasAnswer('')).toBe(false);
+    expect(hasAnswer([])).toBe(false);
+    expect(hasAnswer(0)).toBe(true);
+    expect(hasAnswer(['a'])).toBe(true);
+  });
+});
