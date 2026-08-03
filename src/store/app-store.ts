@@ -10,5 +10,5 @@ type AppState = {
 export const useAppStore = create<AppState>((set) => ({
   isPro: false, entitlementStatus: 'unknown', billingBusy: false,
   setIsPro: (isPro) => set({ isPro, entitlementStatus: 'ready' }),
-  reset: () => set({ isPro: false, entitlementStatus: 'unknown' }),
+  reset: () => set({ isPro: false, entitlementStatus: 'unknown', billingBusy: false }),
 }));
