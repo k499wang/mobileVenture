@@ -17,3 +17,13 @@ describe('calendar keys', () => {
     expect(engine.weekKey(new Date(2026, 9, 19, 0).getTime())).toBe('2026-10-19');
   });
 });
+
+describe('seeded', () => {
+  it('is deterministic per seed and stays within [0, 1)', () => {
+    const a = engine.seeded('day:1'); const b = engine.seeded('day:1'); const c = engine.seeded('day:2');
+    const first = Array.from({ length: 20 }, a);
+    expect(first).toEqual(Array.from({ length: 20 }, b));
+    expect(first).not.toEqual(Array.from({ length: 20 }, c));
+    expect(first.every(value => value >= 0 && value < 1)).toBe(true);
+  });
+});
