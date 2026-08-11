@@ -27,3 +27,13 @@ describe('seeded', () => {
     expect(first.every(value => value >= 0 && value < 1)).toBe(true);
   });
 });
+
+describe('levels', () => {
+  it('levelFor is the inverse of xpForLevel at every threshold', () => {
+    for (let level = 1; level <= 30; level++) {
+      const xp = engine.xpForLevel(level, def);
+      expect(engine.levelFor(xp, def)).toBe(level);
+      if (level > 1) expect(engine.levelFor(xp - 1, def)).toBe(level - 1);
+    }
+  });
+});
