@@ -36,4 +36,12 @@ describe('levels', () => {
       if (level > 1) expect(engine.levelFor(xp - 1, def)).toBe(level - 1);
     }
   });
+  it('levelProgress ratio stays within [0, 1)', () => {
+    for (const xp of [0, 1, 37, 250, 999, 5000]) {
+      const progress = engine.levelProgress({ ...fresh(), xp }, def);
+      expect(progress.ratio).toBeGreaterThanOrEqual(0);
+      expect(progress.ratio).toBeLessThan(1);
+      expect(progress.current).toBeLessThan(progress.needed);
+    }
+  });
 });
