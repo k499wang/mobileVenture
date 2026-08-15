@@ -44,4 +44,9 @@ describe('levels', () => {
       expect(progress.current).toBeLessThan(progress.needed);
     }
   });
+  it('stageFor picks the highest unlocked stage regardless of config order', () => {
+    const shuffled = { ...def, pet: { ...def.pet, stages: [...def.pet.stages].reverse() } };
+    for (let level = 1; level <= 40; level += 3) expect(engine.stageFor(level, shuffled).name).toBe(engine.stageFor(level, def).name);
+    expect(engine.stageFor(1, def).level).toBe(1);
+  });
 });
