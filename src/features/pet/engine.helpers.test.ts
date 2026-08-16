@@ -50,3 +50,14 @@ describe('levels', () => {
     expect(engine.stageFor(1, def).level).toBe(1);
   });
 });
+
+describe('refresh', () => {
+  it('keeps only the 60 most recent day logs', () => {
+    const days = Object.fromEntries(Array.from({ length: 75 }, (_, i) => [engine.dayKey(t0 - i * DAY), { actions: {}, goalsDone: [] }]));
+    const next = engine.refresh({ ...fresh(), days }, ctx());
+    const keys = Object.keys(next.days).sort();
+    expect(keys).toHaveLength(60);
+    expect(keys.at(-1)).toBe(engine.dayKey(t0));
+    expect(keys[0]).toBe(engine.dayKey(t0 - 59 * DAY));
+  });
+});
