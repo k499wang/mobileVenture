@@ -61,3 +61,11 @@ describe('refresh', () => {
     expect(keys[0]).toBe(engine.dayKey(t0 - 59 * DAY));
   });
 });
+
+describe('goals and naming', () => {
+  it('trims goal titles and ignores blank ones', () => {
+    const state = engine.addGoal(fresh(), '  Walk  ', t0);
+    expect(state.goals.map(goal => goal.title)).toEqual(['Walk']);
+    expect(engine.addGoal(state, '   ', t0)).toBe(state);
+  });
+});
