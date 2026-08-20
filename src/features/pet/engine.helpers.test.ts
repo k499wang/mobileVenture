@@ -68,4 +68,10 @@ describe('goals and naming', () => {
     expect(state.goals.map(goal => goal.title)).toEqual(['Walk']);
     expect(engine.addGoal(state, '   ', t0)).toBe(state);
   });
+  it('removes goals by id and keeps the old name for blank renames', () => {
+    const state = engine.addGoal(engine.addGoal(fresh(), 'A', t0), 'B', t0);
+    expect(engine.removeGoal(state, state.goals[0].id).goals.map(goal => goal.title)).toEqual(['B']);
+    expect(engine.renamePet(state, '  ').petName).toBe('Bun');
+    expect(engine.renamePet(state, ' Pip ').petName).toBe('Pip');
+  });
 });
