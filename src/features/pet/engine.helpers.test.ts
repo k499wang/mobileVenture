@@ -75,3 +75,13 @@ describe('goals and naming', () => {
     expect(engine.renamePet(state, ' Pip ').petName).toBe('Pip');
   });
 });
+
+describe('petLine', () => {
+  it('uses away dialogue while adventuring and fills in the pet name', () => {
+    const away = { ...fresh(), adventure: { status: 'away' as const, adventureId: content.adventures[0].id, startedAt: t0, endsAt: t0 + DAY } };
+    const line = engine.petLine(away, ctx());
+    const expected = content.dialogue.away.map(text => text.replaceAll('{{pet}}', 'Bun'));
+    expect(expected).toContain(line);
+    expect(line).not.toContain('{{pet}}');
+  });
+});
