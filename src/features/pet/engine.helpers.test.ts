@@ -85,3 +85,11 @@ describe('petLine', () => {
     expect(line).not.toContain('{{pet}}');
   });
 });
+
+describe('equipItem', () => {
+  it('clears a slot when passed null', () => {
+    const item = content.items.find(entry => !entry.premium && (entry.minLevel ?? 1) <= 1)!;
+    const owned = { ...fresh(), inventory: [item.id], equipped: { [item.slot]: item.id } };
+    expect(engine.equipItem(owned, ctx(), item.slot, null).equipped[item.slot]).toBeUndefined();
+  });
+});
