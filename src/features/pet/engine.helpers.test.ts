@@ -93,3 +93,15 @@ describe('equipItem', () => {
     expect(engine.equipItem(owned, ctx(), item.slot, null).equipped[item.slot]).toBeUndefined();
   });
 });
+
+describe('daily limits', () => {
+  it('still logs actions past the limit but stops paying out', () => {
+    const [actionId, reward] = Object.entries(def.actions).find(([, value]) => value.dailyLimit !== undefined)!;
+    let state = fresh();
+    for (let i = 0; i < reward.dailyLimit!; i++) state = engine.recordAction(state, ctx(t0 + i), actionId).state;
+    const extra = engine.recordAction(state, ctx(t0 + 99), actionId);
+    expect(extra.state.currency).toBe(state.currency);
+    expect(extra.events.some(event => event.type === 'reward')).toBe(false);
+    expect(engine.today(extra.state, t0).actions[actionId]).toBe(reward.dailyLimit! + 1);
+  });
+});
