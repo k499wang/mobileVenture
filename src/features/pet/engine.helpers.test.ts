@@ -105,3 +105,7 @@ describe('daily limits', () => {
     expect(engine.today(extra.state, t0).actions[actionId]).toBe(reward.dailyLimit! + 1);
   });
 });
+
+describe('claimQuest', () => {
+  it('rejects quests that were never rolled', () => expect(() => engine.claimQuest(fresh(), ctx(), 'not-a-quest')).toThrow('not-ready'));
+});
