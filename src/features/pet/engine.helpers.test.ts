@@ -109,3 +109,14 @@ describe('daily limits', () => {
 describe('claimQuest', () => {
   it('rejects quests that were never rolled', () => expect(() => engine.claimQuest(fresh(), ctx(), 'not-a-quest')).toThrow('not-ready'));
 });
+
+describe('gentle streaks', () => {
+  it('keeps the best streak and total days after a missed day', () => {
+    const action = Object.keys(def.actions)[0];
+    let state = fresh();
+    for (let i = 0; i < 3; i++) state = engine.recordAction(state, ctx(t0 + i * DAY), action).state;
+    const back = engine.recordAction(state, ctx(t0 + 5 * DAY), action);
+    expect(back.state.streak).toMatchObject({ current: 1, best: 3, totalDays: 4 });
+    expect(back.events).toContainEqual({ type: 'streak', current: 1, welcomeBack: true });
+  });
+});
