@@ -7,3 +7,9 @@ const schema = { type: 'object', required: ['name'], properties: { name: { type:
 test('objects reject unknown fields with a precise location', () => {
   assert.throws(() => validate(schema, { name: 'a', extra: 1 }), /\$\.extra: unknown field/);
 });
+
+test('objects require declared fields and reject arrays or null', () => {
+  assert.throws(() => validate(schema, {}), /\$\.name: required/);
+  assert.throws(() => validate(schema, []), /expected object/);
+  assert.throws(() => validate(schema, null), /expected object/);
+});
