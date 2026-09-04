@@ -13,3 +13,10 @@ test('objects require declared fields and reject arrays or null', () => {
   assert.throws(() => validate(schema, []), /expected object/);
   assert.throws(() => validate(schema, null), /expected object/);
 });
+
+test('enum, minimum and maximum bounds are enforced', () => {
+  assert.equal(validate({ type: 'string', enum: ['a', 'b'] }, 'a'), 'a');
+  assert.throws(() => validate({ type: 'string', enum: ['a', 'b'] }, 'c'), /invalid choice/);
+  assert.throws(() => validate({ type: 'number', minimum: 1 }, 0), /below minimum/);
+  assert.throws(() => validate({ type: 'number', maximum: 1 }, 2), /above maximum/);
+});
