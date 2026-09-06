@@ -20,3 +20,11 @@ test('enum, minimum and maximum bounds are enforced', () => {
   assert.throws(() => validate({ type: 'number', minimum: 1 }, 0), /below minimum/);
   assert.throws(() => validate({ type: 'number', maximum: 1 }, 2), /above maximum/);
 });
+
+test('strings and arrays respect field and global limits', () => {
+  assert.throws(() => validate({ type: 'string', maxLength: 3 }, 'abcd'), /exceeds field limit/);
+  assert.throws(() => validate({ type: 'string' }, 'x'.repeat(40_001)), /string too large/);
+  assert.throws(() => validate({ type: 'array', items: { type: 'number' } }, Array(101).fill(1)), /item limit/);
+  assert.throws(() => validate({ type: 'array', items: { type: 'number' }, maxItems: 2 }, [1, 2, 3]), /item limit/);
+  assert.throws(() => validate({ type: 'array', items: { type: 'number' } }, [1, 'two']), /\$\[1\]: expected number/);
+});
