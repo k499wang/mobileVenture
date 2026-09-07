@@ -3,6 +3,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
+import { initializeAppServices } from '@/services/initialize';
+import { reportError } from '@/services/errors';
 import { scheduleOnRN } from 'react-native-worklets';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
@@ -51,6 +53,7 @@ export function AnimatedSplashOverlay() {
       onLayout={() => {
         SplashScreen.hideAsync().finally(() => {
           setAnimate(true);
+          void initializeAppServices().catch(error => reportError(error, 'services.init'));
         });
       }}
       style={styles.splashOverlay}>
