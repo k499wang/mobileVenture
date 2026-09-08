@@ -28,3 +28,7 @@ test('strings and arrays respect field and global limits', () => {
   assert.throws(() => validate({ type: 'array', items: { type: 'number' }, maxItems: 2 }, [1, 2, 3]), /item limit/);
   assert.throws(() => validate({ type: 'array', items: { type: 'number' } }, [1, 'two']), /\$\[1\]: expected number/);
 });
+
+test('numbers must be finite', () => {
+  for (const value of [NaN, Infinity, -Infinity]) assert.throws(() => validate({ type: 'number' }, value), /expected number/);
+});
