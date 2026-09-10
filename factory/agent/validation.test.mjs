@@ -32,3 +32,9 @@ test('strings and arrays respect field and global limits', () => {
 test('numbers must be finite', () => {
   for (const value of [NaN, Infinity, -Infinity]) assert.throws(() => validate({ type: 'number' }, value), /expected number/);
 });
+
+test('digest is a stable sha256 of the JSON form', () => {
+  assert.equal(digest({ a: 1 }), digest({ a: 1 }));
+  assert.notEqual(digest({ a: 1 }), digest({ a: 2 }));
+  assert.match(digest([]), /^[0-9a-f]{64}$/);
+});
