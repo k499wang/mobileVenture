@@ -16,3 +16,10 @@ test('run IDs are bounded and cannot contain path segments', () => {
   for (const value of ['short', '../escape-run', 'a/b/c/d/e/f', 'x'.repeat(81), 42, null]) assert.equal(isRunId(value), false);
   assert.throws(() => new RunStore('/tmp').directory('../../etc'), /Invalid run ID/);
 });
+
+test('save and read round-trip state', async (t) => {
+  const store = await tempStore(t);
+  const state = { id: 'run-roundtrip', createdAt: '2026-01-01T00:00:00Z', stage: 'research' };
+  await store.save(state);
+  assert.deepEqual(await store.read(state.id), state);
+});
