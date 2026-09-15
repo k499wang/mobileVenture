@@ -23,3 +23,13 @@ test('save and read round-trip state', async (t) => {
   await store.save(state);
   assert.deepEqual(await store.read(state.id), state);
 });
+
+test('list returns newest runs first and skips corrupt or foreign folders', async (t) => {
+  const store = await tempStore(t);
+  await store.save({ id: 'run-older-one', createdAt: '2026-01-01T00:00:00Z' });
+  await store.save({ id: 'run-newer-one', createdAt: '2026-02-01T00:00:00Z' });
+  await mkdir(path.join(store.root, 'run-corrupted'), { recursive: true });
+  await writeFile(path.join(store.root, 'run-corrupted', 'state.json'), '{');
+  await mkdir(path.join(store.root, '.hidden'), { recursive: true });
+  assert.deepEqual((await store.list()).map(run => run.id), ['run-newer-one', 'run-older-one']);
+});
