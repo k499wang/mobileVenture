@@ -42,3 +42,11 @@ test('a live lock blocks a second holder until released', async (t) => {
   const again = await store.lock('run-locked-1');
   await again();
 });
+
+test('a lock left by a dead process is reclaimed', async (t) => {
+  const store = await tempStore(t);
+  await mkdir(store.directory('run-stale-lock'), { recursive: true });
+  await writeFile(path.join(store.directory('run-stale-lock'), 'run.lock'), '999999');
+  const release = await store.lock('run-stale-lock');
+  await release();
+});
