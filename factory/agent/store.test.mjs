@@ -50,3 +50,10 @@ test('a lock left by a dead process is reclaimed', async (t) => {
   const release = await store.lock('run-stale-lock');
   await release();
 });
+
+test('concurrent saves are serialized and the last snapshot wins', async (t) => {
+  const store = await tempStore(t);
+  const base = { id: 'run-parallel', createdAt: '2026-01-01T00:00:00Z' };
+  await Promise.all(Array.from({ length: 10 }, (_, step) => store.save({ ...base, step })));
+  assert.equal((await store.read(base.id)).step, 9);
+});
