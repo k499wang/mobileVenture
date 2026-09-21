@@ -10,7 +10,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
 
-export function AnimatedSplashOverlay() {
+export function AnimatedSplashOverlay({ color = '#208AEF' }: { color?: string }) {
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
 
@@ -45,7 +45,7 @@ export function AnimatedSplashOverlay() {
           scheduleOnRN(setVisible, false);
         }
       })}
-      style={styles.splashOverlay}>
+      style={[styles.splashOverlay, { backgroundColor: color }]}>
       {image}
     </Animated.View>
   ) : (
@@ -56,7 +56,7 @@ export function AnimatedSplashOverlay() {
           void initializeAppServices().catch(error => reportError(error, 'services.init'));
         });
       }}
-      style={styles.splashOverlay}>
+      style={[styles.splashOverlay, { backgroundColor: color }]}>
       {image}
     </View>
   );
@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,

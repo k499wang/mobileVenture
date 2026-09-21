@@ -1,154 +1,39 @@
-import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { env, serviceStatus } from '@/config/env';
-import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { GlassButton, GlassCard, GlassChip, GlassHeader, useGlassPalette } from '@/components/glass';
+import { appDefinition } from '@/config/app-definition';
+import { serviceStatus } from '@/config/env';
+import { requestReviewAfterSuccess } from '@/services/review';
+import { trackEvent } from '@/services/analytics';
 import { presentPaywall } from '@/services/purchases';
 import { useAppStore } from '@/store/app-store';
 
+/** Replace the contents of this screen per app; the shell and services stay shared. */
 export default function HomeScreen() {
-  const theme = useTheme();
-  const isPro = useAppStore((state) => state.isPro);
-  const status = useAppStore((state) => state.entitlementStatus);
-  const billingBusy = useAppStore((state) => state.billingBusy);
-  const [isOpeningPaywall, setIsOpeningPaywall] = useState(false);
-
-  async function handlePaywall() {
-    setIsOpeningPaywall(true);
-
-    try {
-      const unlocked = await presentPaywall();
-      if (unlocked === 'purchased' || unlocked === 'restored') Alert.alert('You are Pro', 'Your entitlement is now active.');
-    } catch (error) {
-      Alert.alert('Paywall unavailable', error instanceof Error ? error.message : 'Try again later.');
-    } finally {
-      setIsOpeningPaywall(false);
-    }
+  const palette = useGlassPalette();
+  const isPro = useAppStore(state => state.isPro);
+  const billingBusy = useAppStore(state => state.billingBusy);
+  const [working, setWorking] = useState(false);
+  async function unlock() {
+    setWorking(true);
+    try { await presentPaywall(appDefinition.subscription.offeringPlacement); }
+    catch (error) { Alert.alert('Subscriptions are unavailable', error instanceof Error ? error.message : 'Try again later.'); }
+    finally { setWorking(false); }
   }
-
-  return (
-    <ScrollView
-      style={{ backgroundColor: theme.background }}
-      contentInsetAdjustmentBehavior="automatic">
-      <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
-        <View style={styles.header}>
-          <View style={[styles.icon, { backgroundColor: Colors.accent }]}>
-            <SymbolView name="sparkles" tintColor="#FFFFFF" size={30} />
-          </View>
-          <ThemedText type="title">Ready to build</ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-            A small iOS-first foundation with the services most apps need.
-          </ThemedText>
-        </View>
-
-        {__DEV__ && <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="subtitle">App status</ThemedText>
-          <StatusRow label="Supabase" ready={serviceStatus.supabase} />
-          <StatusRow label="PostHog" ready={serviceStatus.posthog} />
-          <StatusRow label="AppsFlyer" ready={serviceStatus.appsFlyer} />
-          <StatusRow label="RevenueCat" ready={serviceStatus.revenueCat} />
-        </ThemedView>}
-
-        <ThemedView type="backgroundElement" style={styles.card}>
-          <View style={styles.rowBetween}>
-            <View style={styles.flex}>
-              <ThemedText type="subtitle">{env.revenueCatEntitlementId}</ThemedText>
-              <ThemedText themeColor="textSecondary">
-                {status === 'ready' ? (isPro ? 'Entitlement active' : 'No active entitlement') : status === 'error' ? 'Unable to check access. Tap below to retry.' : status === 'disabled' ? 'Subscriptions unavailable' : 'Checking access…'}
-              </ThemedText>
-            </View>
-            <View style={[styles.badge, { backgroundColor: isPro ? Colors.green : theme.backgroundSelected }]}>
-              <ThemedText type="smallBold" style={isPro && styles.whiteText}>
-                {status === 'ready' ? (isPro ? 'PRO' : 'FREE') : '…'}
-              </ThemedText>
-            </View>
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            disabled={!serviceStatus.revenueCat || isOpeningPaywall || billingBusy}
-            onPress={handlePaywall}
-            style={({ pressed }) => [
-              styles.button,
-              { backgroundColor: Colors.accent },
-              pressed && styles.pressed,
-              (!serviceStatus.revenueCat || isOpeningPaywall) && styles.disabled,
-            ]}>
-            <ThemedText type="smallBold" style={styles.whiteText}>
-              {isOpeningPaywall ? 'Opening…' : 'Show RevenueCat paywall'}
-            </ThemedText>
-          </Pressable>
-        </ThemedView>
-
-        {__DEV__ && <ThemedText themeColor="textSecondary" type="small" style={styles.footnote}>
-          Add your keys to .env, then rebuild with npx expo run:ios.
-        </ThemedText>}
-      </SafeAreaView>
-    </ScrollView>
-  );
+  function completeExampleAction() {
+    trackEvent('core_action_completed', { action: 'example_completed' });
+    void requestReviewAfterSuccess();
+    Alert.alert('Nice work', 'This is where your app’s core outcome goes. The event is already tracked.');
+  }
+  return <ScrollView style={[styles.page, { backgroundColor: palette.page }]} contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="automatic"><SafeAreaView edges={['left', 'right']}>
+    <GlassHeader title={appDefinition.name} trailing={<GlassChip label={isPro ? 'PRO' : 'FREE'} selected={isPro} />} />
+    <View style={styles.hero}><Text style={[styles.eyebrow, { color: palette.muted }]}>YOUR CORE FEATURE</Text><Text style={[styles.title, { color: palette.text }]}>Build this screen for each app.</Text><Text style={[styles.copy, { color: palette.muted }]}>Everything around it—onboarding, subscriptions, identity, analytics, attribution, notifications, and settings—is already shared.</Text></View>
+    <GlassCard style={styles.card}><Text style={[styles.cardTitle, { color: palette.text }]}>Feature placeholder</Text><Text style={[styles.copy, { color: palette.muted }]}>Replace this card with the one thing people open your app to do.</Text><GlassButton color={appDefinition.brand.primary} onPress={completeExampleAction}><Text style={styles.button}>Complete example action</Text></GlassButton></GlassCard>
+    {!isPro ? <GlassCard style={styles.card}><Text style={[styles.cardTitle, { color: palette.text }]}>Unlock premium</Text><Text style={[styles.copy, { color: palette.muted }]}>Packages, trials, and prices are managed remotely in RevenueCat.</Text><GlassButton color={appDefinition.brand.primary} disabled={!serviceStatus.revenueCat || billingBusy || working} onPress={() => void unlock()}><Text style={styles.button}>{working ? 'Opening…' : serviceStatus.revenueCat ? 'View plans' : 'Subscriptions need configuration'}</Text></GlassButton></GlassCard> : null}
+    {__DEV__ ? <Text style={[styles.dev, { color: palette.muted }]}>Factory preview · Edit app-definition.ts for configuration or replace this feature placeholder.</Text> : null}
+  </SafeAreaView></ScrollView>;
 }
 
-function StatusRow({ label, ready }: { label: string; ready: boolean }) {
-  return (
-    <View style={styles.statusRow}>
-      <View style={[styles.statusDot, { backgroundColor: ready ? Colors.green : Colors.orange }]} />
-      <ThemedText style={styles.flex}>{label}</ThemedText>
-      <ThemedText themeColor="textSecondary" type="small">
-        {ready ? 'Configured' : 'Needs key'}
-      </ThemedText>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  safeArea: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.five,
-    paddingBottom: BottomTabInset + Spacing.six,
-    gap: Spacing.four,
-  },
-  header: {
-    alignItems: 'center',
-    gap: Spacing.two,
-    paddingVertical: Spacing.four,
-  },
-  icon: {
-    width: 62,
-    height: 62,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.two,
-  },
-  subtitle: { textAlign: 'center', maxWidth: 360 },
-  card: { padding: Spacing.four, borderRadius: 22, gap: Spacing.three },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-  statusDot: { width: 10, height: 10, borderRadius: 5 },
-  rowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.three,
-  },
-  flex: { flex: 1 },
-  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
-  button: {
-    minHeight: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.three,
-  },
-  pressed: { opacity: 0.75 },
-  disabled: { opacity: 0.4 },
-  whiteText: { color: '#FFFFFF' },
-  footnote: { textAlign: 'center', paddingHorizontal: Spacing.four },
-});
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: '#F7F7FB' }, content: { padding: 24, paddingBottom: 120, gap: 24, maxWidth: 760, width: '100%', alignSelf: 'center' }, hero: { gap: 12, paddingVertical: 30 }, eyebrow: { color: '#686875', fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }, title: { color: '#19191F', fontSize: 35, fontWeight: '800', letterSpacing: -0.8 }, copy: { color: '#686875', fontSize: 16, lineHeight: 23 }, card: { gap: 14 }, cardTitle: { color: '#19191F', fontSize: 19, fontWeight: '700' }, button: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' }, dev: { color: '#686875', fontSize: 13, textAlign: 'center' } });

@@ -7,9 +7,8 @@ const config = JSON.parse(execFileSync(process.execPath, ['node_modules/expo/bin
 }));
 const errors = [];
 const platform = process.env.EAS_BUILD_PLATFORM ?? 'ios';
-for (const [name, value] of Object.entries(config.extra?.studio?.links ?? {})) {
-  if (!value || !(name === 'support' ? /^(https:\/\/|mailto:)/ : /^https:\/\//).test(value)) errors.push(`Set a valid ${name} URL in src/config/app.json.`);
-}
+// Legal/support URLs are configured in typed src/config/app-definition.ts and
+// reviewed in the launch checklist; do not duplicate that app-level config here.
 if (!config.ios?.bundleIdentifier || config.ios.bundleIdentifier.includes('example')) errors.push('Set APP_BUNDLE_ID.');
 if (!config.android?.package || config.android.package.includes('example')) errors.push('Set APP_ANDROID_PACKAGE.');
 if (config.name === 'Starter' || config.slug === 'starter') errors.push('Set APP_NAME and APP_SLUG.');

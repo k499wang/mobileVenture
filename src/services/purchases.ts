@@ -131,7 +131,13 @@ export function presentPaywall(placement = 'default'): Promise<PaywallOutcome> {
     if ((result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED || result === PAYWALL_RESULT.NOT_PRESENTED) && !useAppStore.getState().isPro) {
       throw new Error('Subscription access has not been confirmed yet. Please restore purchases or try again shortly.');
     }
-    if (result === PAYWALL_RESULT.PURCHASED) return 'purchased';
+    if (result === PAYWALL_RESULT.PURCHASED) {
+      const entitlement = (await Purchases.getCustomerInfo()).entitlements.active[env.revenueCatEntitlementId];
+      const periodType = String(entitlement?.periodType ?? 'UNKNOWN');
+      trackEvent('purchase_completed', { placement, periodType });
+      if (periodType.toUpperCase() === 'TRIAL') trackEvent('trial_started', { placement });
+      return 'purchased';
+    }
     if (result === PAYWALL_RESULT.RESTORED) return 'restored';
     if (result === PAYWALL_RESULT.NOT_PRESENTED) return 'already-active';
     return 'cancelled';

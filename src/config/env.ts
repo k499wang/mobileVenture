@@ -17,6 +17,7 @@ export const env = {
   revenueCatIosApiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY,
   revenueCatAndroidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY,
   revenueCatEntitlementId: process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID ?? appConfig.entitlementId,
+  supabaseDeleteAccountFunction: process.env.EXPO_PUBLIC_SUPABASE_DELETE_ACCOUNT_FUNCTION ?? 'delete-account',
   sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 };
 export const revenueCatApiKey = Platform.select({ ios: env.revenueCatIosApiKey, android: env.revenueCatAndroidApiKey });

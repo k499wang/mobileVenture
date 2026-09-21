@@ -3,7 +3,7 @@
 ## App and environments
 
 - [ ] Replace template name, slug, identifiers, scheme, icons, splash, home screen, and ATT explanation.
-- [ ] Set privacy, terms, and support URLs in `src/config/app.json`.
+- [ ] Set privacy, terms, and support URLs in `src/config/app-definition.ts`.
 - [ ] Configure separate development/preview/production EAS environments and vendor projects/keys.
 - [ ] Register matching store identifiers and RevenueCat apps. Android needs a Google public SDK key and its own products.
 - [ ] Link this copy to its own EAS project. Configure signing and submission credentials.
@@ -31,7 +31,7 @@
 
 ## Device smoke tests
 
-- [ ] Fresh install: ATT allowed and denied; no permission dialog behind the splash.
+- [ ] Fresh install: ATT allowed and denied from the dedicated onboarding step; no permission dialog behind the splash.
 - [ ] New anonymous customer: onboarding, actual paywall, purchase, access unlocked.
 - [ ] Existing subscriber: no paywall, correct access after relaunch.
 - [ ] Cancel purchase, pending/failed purchase, unavailable offering, and offline launch: useful state and retry.

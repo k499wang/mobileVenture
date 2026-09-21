@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { subscribeIdentity } from '@/services/identity';
 import { initializeAppServices } from '@/services/initialize';
 import { reportError } from '@/services/errors';
+import { initializeAuthLinkHandling } from '@/services/auth-links';
+import { syncOnboardingFromCloud } from '@/services/onboarding-data';
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: {
@@ -15,6 +17,7 @@ export function AppProviders({ children }: PropsWithChildren) {
     const unsubscribeIdentity = subscribeIdentity(() => {
       void queryClient.cancelQueries();
       queryClient.clear();
+      void syncOnboardingFromCloud().catch(error => reportError(error, 'onboarding.cloud-sync'));
     });
     const unsubscribeNetwork = NetInfo.addEventListener(state => {
       onlineManager.setOnline(state.isConnected !== false && state.isInternetReachable !== false);
@@ -26,12 +29,13 @@ export function AppProviders({ children }: PropsWithChildren) {
         void initializeAppServices().catch(error => reportError(error, 'services.init'));
       } else supabase?.auth.stopAutoRefresh();
     }
-    // ATT startup is triggered by the splash completion; foreground transitions retry services.
+    const unsubscribeAuthLinks = initializeAuthLinkHandling();
+    // ATT is requested only from the explicit onboarding/settings action.
     if (AppState.currentState === 'active') void supabase?.auth.startAutoRefresh();
     if (Platform.OS === 'web') void initializeAppServices().catch(error => reportError(error, 'services.init'));
     const subscription = AppState.addEventListener('change', onState);
     return () => {
-      unsubscribeIdentity(); unsubscribeNetwork(); subscription.remove();
+      unsubscribeIdentity(); unsubscribeNetwork(); unsubscribeAuthLinks(); subscription.remove();
       supabase?.auth.stopAutoRefresh();
     };
   }, [queryClient]);

@@ -7,19 +7,33 @@ import { useDeepLinkStore } from '@/store/deep-link-store';
 import { withTimeout } from '@/lib/async';
 
 let initialization: Promise<void> | undefined;
-let requested = false;
-// Call while the app is active, after the native splash has closed.
+// On iOS, AppsFlyer must never begin before the tracking decision is made by the
+// dedicated onboarding/settings action. This intentionally begins false even
+// if the operating system has a previously stored ATT choice.
+let trackingChoiceHandled = Platform.OS !== 'ios';
+
+/**
+ * Start AppsFlyer only after ATT has been handled. Calling this before that is
+ * harmless: it deliberately does nothing rather than prompting under splash.
+ */
 export function initializeAttribution() {
   if (!serviceStatus.appsFlyer) return Promise.resolve();
+  if (!trackingChoiceHandled) return Promise.resolve();
   initialization ??= start().catch(error => { initialization = undefined; throw error; });
   return initialization;
 }
-async function start() {
-  if (Platform.OS === 'ios' && !requested) {
+
+/** Call only from an explicit tracking-permission UI action while the app is active. */
+export async function requestTrackingConsent() {
+  if (Platform.OS === 'ios') {
     const permission = await getTrackingPermissionsAsync();
     if (permission.status === 'undetermined') await requestTrackingPermissionsAsync();
-    requested = true;
   }
+  trackingChoiceHandled = true;
+  await initializeAttribution();
+}
+
+async function start() {
   await AppsFlyer.registerDeepLinkListener({ onDeepLinking: data => {
     if (data.status === 'FOUND') useDeepLinkStore.getState().receive(data.deepLink?.deep_link_value);
   } });
@@ -32,7 +46,7 @@ async function start() {
   await withTimeout(Promise.all([init, started]), 15000, 'AppsFlyer startup');
 }
 export async function getAttributionId() {
-  // Startup owns permission timing. Account hydration must not request ATT under the splash.
+  // Account hydration must not prompt or launch attribution under the splash.
   if (!initialization || !serviceStatus.appsFlyer) return undefined;
   await initialization;
   return AppsFlyer.getAppsFlyerUID();
@@ -47,6 +61,7 @@ export async function trackAttributionEvent(event: 'af_tutorial_completion' | 'a
   if (!serviceStatus.appsFlyer) return;
   try {
     await initializeAttribution();
+    if (!initialization) return;
     await AppsFlyer.logEvent({ eventName: event, eventValues: {} });
   } catch (error) { reportError(error, 'attribution.event'); }
 }

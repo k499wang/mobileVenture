@@ -22,10 +22,12 @@ test('identity lookup before splash completion does not request ATT or start att
   expect(require('react-native-appsflyer').AppsFlyer.init).not.toHaveBeenCalled();
 });
 
-test('denied ATT still starts attribution and registers deep links before init', async () => {
+test('attribution does not start until the explicit tracking action handles ATT', async () => {
   const service = require('./attribution') as typeof import('./attribution');
   const sdk = require('react-native-appsflyer').AppsFlyer;
   await service.initializeAttribution();
+  expect(sdk.init).not.toHaveBeenCalled();
+  await service.requestTrackingConsent();
   expect(sdk.registerDeepLinkListener.mock.invocationCallOrder[0]).toBeLessThan(sdk.init.mock.invocationCallOrder[0]);
   expect(sdk.start).toHaveBeenCalledTimes(1);
   await expect(service.getAttributionId()).resolves.toBe('install-id');
@@ -35,7 +37,7 @@ test('concurrent startup requests share initialization and a failure can retry',
   const service = require('./attribution') as typeof import('./attribution');
   const sdk = require('react-native-appsflyer').AppsFlyer;
   sdk.init.mockRejectedValueOnce(new Error('native failure'));
-  await expect(service.initializeAttribution()).rejects.toThrow('native failure');
+  await expect(service.requestTrackingConsent()).rejects.toThrow('native failure');
   await Promise.all([service.initializeAttribution(), service.initializeAttribution()]);
   expect(sdk.init).toHaveBeenCalledTimes(2);
 });

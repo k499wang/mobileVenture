@@ -6,7 +6,7 @@ An iOS-first Expo SDK 57 foundation with optional Android support. Anonymous usa
 
 1. Use Node 22.13+ (`nvm use`), then `npm ci`.
 2. Copy `.env.example` to `.env`. Fill only the services you need for development. All `EXPO_PUBLIC_*` values ship in the app.
-3. Set app name, slug, scheme, and bundle/package IDs in `.env` or EAS environments. Edit `src/config/app.json` for entitlement, onboarding version, and support/legal URLs. Replace `assets` and the starter home screen.
+3. Set app name, slug, scheme, and bundle/package IDs in `.env` or EAS environments. Edit `src/config/app-definition.ts` for branding, onboarding, entitlement placement, reminders, and legal/support URLs. Replace the home feature placeholder.
 4. Run `npm run ios` (Xcode 26.4+) or `npm run android`. Native SDKs require a development build; Expo Go is not the test target.
 5. Configure a RevenueCat offering/paywall and placement named `default`, or call `presentPaywall('your-placement')` with your configured placement.
 6. Follow [the launch checklist](docs/launch-checklist.md) before release or paid acquisition.
@@ -36,14 +36,14 @@ Put app-specific features under `src/features/<feature>`. Screens call service f
 - Entitlements distinguish unknown/loading/ready/error/disabled. A cached entitlement may survive a transient refresh error; consumers must consider both status and access. A user change clears access immediately.
 - RevenueCat receives PostHog's distinct ID and the AppsFlyer UID before a paywall when those services are available. Identifier reads have deadlines; failed attribution does not prevent purchases. Retry occurs on foreground and subsequent paywalls. A first purchase during an attribution outage may not be attributed; monitor these errors.
 - RevenueCat owns subscription revenue events. The app emits paywall **requests/results**, not invented impressions or purchase revenue. Enable RevenueCat paywall events in its PostHog integration for actual impressions.
-- ATT is requested during startup after the native splash closes. AppsFlyer strict mode is off for consented IDFA collection. Apps for children or apps with another privacy model require an intentional per-app adjustment, including ATT and RevenueCat identifier collection.
+- ATT is requested only by the explicit onboarding tracking step. AppsFlyer does not start before that action. Apps for children or apps with another privacy model require an intentional per-app adjustment, including ATT and RevenueCat identifier collection.
 - Deep links accept `deep_link_value=home` or `settings`. Add explicit destinations in `deep-link-store.ts` and `deep-link-handler.tsx`; do not route arbitrary payloads. OneLink/associated-domain setup is per app.
 - Supabase is `null` when unconfigured. Its auth listener coordinates RevenueCat login/logout and analytics identity. Anonymous RevenueCat usage does not create a Supabase account. Initial Supabase state is consulted before billing initializes.
 - Sentry requires a DSN to send errors. Configure its build plugin with `SENTRY_ORG`, `SENTRY_PROJECT`, and a build-secret `SENTRY_AUTH_TOKEN` for source maps. No replay or performance tracing is enabled by default.
 
 ## Extend it
 
-For onboarding, use `useOnboardingStore`; wait for `hydrated`, then compare `completedVersion` with `appConfig.onboardingVersion`. Supply app-specific screens and completion actions. Onboarding is device-local by default.
+For onboarding, edit `appDefinition.onboarding`; wait for `useOnboardingStore` hydration before rendering the app. The shared gate, progress, conditions, copy interpolation, and standard analytics are already wired. Answers persist locally and sync to Supabase after sign-in when configured.
 
 For accounts, add your chosen login UI using the optional Supabase client. The provider owns downstream SDK synchronization. Add app-specific user caches to the identity cleanup callback. Queries should include user IDs in keys and honor cancellation signals. Do not enable paid backend operations based on client entitlement state: verify access on the server.
 
@@ -68,6 +68,6 @@ OTA updates are not configured. Add EAS Update only when needed, with runtime co
 
 ## Maintain many apps
 
-Record `appConfig.templateVersion` in every app. Keep a changelog of foundation fixes and apply relevant changes to app repositories. Extract a shared package only after multiple shipped apps establish a stable common API. Avoid a large plugin framework or a shared mutable backend just to reuse a few service modules.
+Record `appConfig.templateVersion` in every app. Keep a changelog of foundation fixes and apply relevant changes to app repositories. Extract a shared package only after multiple shipped apps establish a stable common API. Avoid a large plugin framework or a shared mutable backend just to reuse a few service modules. See `AGENTS.md` for the full factory workflow.
 
 See [event ownership](docs/measurement.md) and [launch checklist](docs/launch-checklist.md).
