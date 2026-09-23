@@ -53,3 +53,7 @@ test('creative copy respects export bounds before reaching the renderer', () => 
   creative.creatives[0].headline = 'x'.repeat(55);
   assert.throws(() => validate(artifactSchemas.creative, creative), /field limit/);
 });
+
+test('awareness stages stay in funnel order', () => {
+  assert.deepEqual(AWARENESS_STAGES, ['unaware', 'problem_aware', 'solution_aware', 'product_aware', 'most_aware']);
+});
