@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { demoArtifact, artifactSchemas, ROLES } from './roles.mjs';
 import { validate, validateReferences } from './validation.mjs';
-import { AWARENESS_STAGES, RESEARCH_ROLES } from './growth.mjs';
+import { AWARENESS_STAGES, RESEARCH_ROLES, growthDemoArtifact } from './growth.mjs';
 
 function artifacts() {
   const result = {};
@@ -56,4 +56,8 @@ test('creative copy respects export bounds before reaching the renderer', () => 
 
 test('awareness stages stay in funnel order', () => {
   assert.deepEqual(AWARENESS_STAGES, ['unaware', 'problem_aware', 'solution_aware', 'product_aware', 'most_aware']);
+});
+
+test('growth demo artifacts are undefined for roles they do not own', () => {
+  for (const role of ['researcher', 'planner', 'nope']) assert.equal(growthDemoArtifact(role), undefined);
 });
