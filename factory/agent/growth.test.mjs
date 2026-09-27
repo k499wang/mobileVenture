@@ -61,3 +61,9 @@ test('awareness stages stay in funnel order', () => {
 test('growth demo artifacts are undefined for roles they do not own', () => {
   for (const role of ['researcher', 'planner', 'nope']) assert.equal(growthDemoArtifact(role), undefined);
 });
+
+test('demo creative IDs are unique and safe for file names', () => {
+  const ids = growthDemoArtifact('creative').creatives.map(item => item.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ids) assert.match(id, /^[a-z][a-z0-9-]{1,79}$/);
+});
