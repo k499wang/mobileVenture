@@ -120,3 +120,10 @@ describe('gentle streaks', () => {
     expect(back.events).toContainEqual({ type: 'streak', current: 1, welcomeBack: true });
   });
 });
+
+describe('game setup', () => {
+  it('falls back to the default pet name for blank input', () => {
+    expect(engine.createGame(def, '   ').petName).toBe(def.pet.defaultName);
+    expect(engine.createGame(def, ' Mo ').petName).toBe('Mo');
+  });
+});
