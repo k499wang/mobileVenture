@@ -127,3 +127,12 @@ describe('game setup', () => {
     expect(engine.createGame(def, ' Mo ').petName).toBe('Mo');
   });
 });
+
+describe('adventure guards', () => {
+  it('refuses to start while away or collect before returning', () => {
+    const away = { ...fresh(), energy: def.energy.max, adventure: { status: 'away' as const, adventureId: content.adventures[0].id, startedAt: t0, endsAt: t0 + DAY } };
+    expect(() => engine.startAdventure(away, ctx())).toThrow('not-ready');
+    expect(() => engine.collectAdventure(away, ctx())).toThrow('not-ready');
+    expect(() => engine.collectAdventure(fresh(), ctx())).toThrow('not-ready');
+  });
+});
