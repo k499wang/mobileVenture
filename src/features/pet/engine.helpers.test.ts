@@ -136,3 +136,7 @@ describe('adventure guards', () => {
     expect(() => engine.collectAdventure(fresh(), ctx())).toThrow('not-ready');
   });
 });
+
+describe('shop guards', () => {
+  it('rejects unknown items', () => expect(() => engine.buyItem({ ...fresh(), currency: 9999 }, ctx(), 'ghost-hat')).toThrow('unknown'));
+});
