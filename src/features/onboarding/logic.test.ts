@@ -66,3 +66,11 @@ describe('hasAnswer', () => {
     expect(hasAnswer(['a'])).toBe(true);
   });
 });
+
+describe('canAdvance for multi-select', () => {
+  it('blocks an empty selection list', () => {
+    const step: OnboardingStep = { id: 'm', type: 'select', title: 'T', answerKey: 'topics', multiple: true, options: [] };
+    expect(canAdvance(step, { topics: [] })).toBe(false);
+    expect(canAdvance(step, { topics: ['sleep'] })).toBe(true);
+  });
+});
