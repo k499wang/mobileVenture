@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { digest, validate } from './validation.mjs';
+import { digest, validate, validateReferences } from './validation.mjs';
 
 const schema = { type: 'object', required: ['name'], properties: { name: { type: 'string' }, count: { type: 'number' } } };
 
@@ -37,4 +37,11 @@ test('digest is a stable sha256 of the JSON form', () => {
   assert.equal(digest({ a: 1 }), digest({ a: 1 }));
   assert.notEqual(digest({ a: 1 }), digest({ a: 2 }));
   assert.match(digest([]), /^[0-9a-f]{64}$/);
+});
+
+test('decisions must cite known evidence', () => {
+  const artifacts = { researcher: { evidence: [{ id: 'e1' }] } };
+  assert.throws(() => validateReferences('analyst', { opportunities: [{ evidenceIds: [] }] }, artifacts, { mode: 'demo' }), /at least one evidence/);
+  assert.throws(() => validateReferences('analyst', { opportunities: [{ evidenceIds: ['e9'] }] }, artifacts, { mode: 'demo' }), /Unknown evidence reference: e9/);
+  assert.throws(() => validateReferences('analyst', { opportunities: [] }, artifacts, { mode: 'demo' }), /No opportunity/);
 });
