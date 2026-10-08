@@ -45,3 +45,10 @@ test('decisions must cite known evidence', () => {
   assert.throws(() => validateReferences('analyst', { opportunities: [{ evidenceIds: ['e9'] }] }, artifacts, { mode: 'demo' }), /Unknown evidence reference: e9/);
   assert.throws(() => validateReferences('analyst', { opportunities: [] }, artifacts, { mode: 'demo' }), /No opportunity/);
 });
+
+test('planner slugs must be safe lowercase identifiers', () => {
+  const artifacts = { researcher: { evidence: [{ id: 'e1' }] } };
+  const plan = slug => ({ slug, evidenceIds: ['e1'], features: [{ evidenceIds: ['e1'], acceptanceCriteria: ['works'] }] });
+  assert.ok(validateReferences('planner', plan('shift-flow'), artifacts, { mode: 'demo' }));
+  for (const slug of ['Shift', '../x', '1app', 'a']) assert.throws(() => validateReferences('planner', plan(slug), artifacts, { mode: 'demo' }), /safe lowercase/);
+});
