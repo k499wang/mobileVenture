@@ -66,6 +66,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "test:all": "npm test -- --runInBand && npm run agent:test",
     "check": "npm run typecheck && npm run lint && npm test -- --runInBand",
     "validate:release": "node scripts/validate-release.mjs",
     "eas-build-post-install": "node scripts/eas-post-install.mjs",
