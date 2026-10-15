@@ -15,17 +15,17 @@ export const env = {
   appsFlyerDevKey: process.env.EXPO_PUBLIC_APPSFLYER_DEV_KEY,
   appsFlyerAppId: process.env.EXPO_PUBLIC_APPSFLYER_APP_ID,
   revenueCatIosApiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY,
-  revenueCatAndroidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY,
   revenueCatEntitlementId: process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID ?? appConfig.entitlementId,
   supabaseDeleteAccountFunction: process.env.EXPO_PUBLIC_SUPABASE_DELETE_ACCOUNT_FUNCTION ?? 'delete-account',
   sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 };
-export const revenueCatApiKey = Platform.select({ ios: env.revenueCatIosApiKey, android: env.revenueCatAndroidApiKey });
-const native = Platform.OS === 'ios' || Platform.OS === 'android';
+export const revenueCatApiKey = env.revenueCatIosApiKey;
+// iOS-only factory. Tests and tooling run outside iOS, so native SDKs stay disabled there.
+const native = Platform.OS === 'ios';
 export const serviceStatus = {
   supabase: configured(env.supabaseUrl) && configured(env.supabasePublishableKey),
   posthog: native && configured(env.posthogApiKey),
-  appsFlyer: native && configured(env.appsFlyerDevKey) && (Platform.OS !== 'ios' || configured(env.appsFlyerAppId)),
+  appsFlyer: native && configured(env.appsFlyerDevKey) && configured(env.appsFlyerAppId),
   revenueCat: native && configured(revenueCatApiKey),
   sentry: configured(env.sentryDsn),
 };

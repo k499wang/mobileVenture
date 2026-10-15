@@ -6,7 +6,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import path from 'node:path';
 
 const foundationDirectory = path.resolve(import.meta.dirname, '..');
-const excludedTopLevelDirectories = new Set(['.git', '.expo', 'node_modules', 'factory', 'ios', 'android']);
+const excludedTopLevelDirectories = new Set(['.git', '.expo', 'node_modules', 'factory', 'ios']);
 const excludedFiles = new Set(['.env', 'package-lock.json']);
 const args = process.argv.slice(2);
 const destinationArgument = args.find((arg) => !arg.startsWith('--'));
@@ -59,8 +59,6 @@ async function configureExpoProject(directory, values) {
   config.expo.slug = values.slug;
   config.expo.scheme = values.scheme;
   config.expo.ios.bundleIdentifier = values.bundleId;
-  config.expo.android.package = values.bundleId;
-  config.expo.android.adaptiveIcon = { ...(config.expo.android.adaptiveIcon ?? {}), backgroundColor: values.brandColor };
   for (const plugin of config.expo.plugins ?? []) {
     if (!Array.isArray(plugin)) continue;
     if (plugin[0] === 'expo-splash-screen') plugin[1] = { ...plugin[1], backgroundColor: values.brandColor };

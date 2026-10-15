@@ -1,13 +1,30 @@
 # App studio starter
 
-An iOS-first Expo SDK 57 foundation with optional Android support. Anonymous usage is the default; Supabase accounts are optional. Each app should have its own repository and vendor configuration.
+An iOS-only Expo SDK 57 starter for subscription apps. Flow: **onboarding → soft RevenueCat paywall → required Apple/Google sign-in → Home/Settings tabs**. Each app should have its own repository and vendor configuration.
+
+## Quick recipes
+
+| I want to… | Edit |
+| --- | --- |
+| Restyle the app (colors, fonts, radii, spacing, glass on/off, light/dark) | `src/theme/theme.ts` only |
+| Add/remove/reorder onboarding screens | `onboarding` array in `src/config/app-definition.ts` (copy entries from `src/config/onboarding-examples.ts`) |
+| Change any copy or add a language | `src/i18n/en.ts` (add `es.ts` etc. and register it in `src/i18n/index.ts`) |
+| Gate a premium action | `if (!(await requirePro('feature-name'))) return;` from `@/services/entitlements` |
+| Hide premium UI | `<ProGate feature="x">…</ProGate>` from `@/components/pro-gate` |
+| Read Pro status | `const { isPro, loading } = useEntitlement()` |
+| Add a tab | add an entry to `tabs` in app-definition (SF Symbol icons) + a file in `src/app/(tabs)/` |
+| Build the core feature | `src/features/<feature>/`, exported from `src/app/(tabs)/index.tsx` |
+| Make sign-in optional | `auth: { required: false }` in app-definition |
+| Build UI | primitives in `src/components/ui.tsx`: `Screen`, `Text`, `Button`, `Card`, `Section`, `ListRow`, `OptionCard`, `Input`, `Chip` |
+
+Onboarding step kinds: `info`, `video`, `select` (single/multi), `text`, `slider`, `date`, `testimonial`, `rating`, `permission` (`tracking` or `notifications`), `loading`, `chart`, `paywall`. Bump `onboardingVersion` to show a changed flow to existing users.
 
 ## Start an app
 
 1. Use Node 22.13+ (`nvm use`), then `npm ci`.
 2. Copy `.env.example` to `.env`. Fill only the services you need for development. All `EXPO_PUBLIC_*` values ship in the app.
-3. Set app name, slug, scheme, and bundle/package IDs in `.env` or EAS environments. Edit `src/config/app-definition.ts` for branding, onboarding, entitlement placement, reminders, and legal/support URLs. Replace the home feature placeholder.
-4. Run `npm run ios` (Xcode 26.4+) or `npm run android`. Native SDKs require a development build; Expo Go is not the test target.
+3. Set app name, slug, scheme, and bundle/package IDs in `.env` or EAS environments. Edit `src/config/app-definition.ts` for onboarding, tabs, entitlement placement, reminders, App Store ID, and legal/support links, and `src/theme/theme.ts` for styling. Replace the home feature placeholder.
+4. Run `npm run ios` (Xcode 26.4+). Native SDKs require a development build; Expo Go is not the test target.
 5. Configure a RevenueCat offering/paywall and placement named `default`, or call `presentPaywall('your-placement')` with your configured placement.
 6. Follow [the launch checklist](docs/launch-checklist.md) before release or paid acquisition.
 
@@ -25,13 +42,16 @@ Development and preview builds receive separate display names, URL schemes, and 
 | `src/services/errors.ts` | Sentry setup and operational error reporting |
 | `src/providers` | Query cache, connectivity, app foreground lifecycle, auth subscription |
 | `src/store` | In-memory entitlement state, optional persisted onboarding, pending deep links |
-| `src/app` | Routes and screen composition |
+| `src/app` | Routes: root gates + `(tabs)` group |
+| `src/theme/theme.ts` | Every style token |
+| `src/i18n` | Copy and languages |
+| `src/features/onboarding`, `auth`, `settings`, `home` | Flows and screens |
 
 Put app-specific features under `src/features/<feature>`. Screens call service functions; they should not import billing or attribution SDKs. Keep server data in Query, local UI state in React/Zustand, and entitlements in RevenueCat. Do not persist a second authoritative `isPro` flag.
 
 ## Service behavior
 
-- Missing keys disable optional services in development. Web billing is explicitly unavailable.
+- Missing keys disable optional services in development. Without Supabase keys, the sign-in screen offers a dev-only bypass; `validate:release` requires the keys.
 - Billing initialization and identity changes share a queue. Recoverable failures can retry on the next foreground or purchase action. Native calls are not blindly repeated while in flight.
 - Entitlements distinguish unknown/loading/ready/error/disabled. A cached entitlement may survive a transient refresh error; consumers must consider both status and access. A user change clears access immediately.
 - RevenueCat receives PostHog's distinct ID and the AppsFlyer UID before a paywall when those services are available. Identifier reads have deadlines; failed attribution does not prevent purchases. Retry occurs on foreground and subsequent paywalls. A first purchase during an attribution outage may not be attributed; monitor these errors.
@@ -43,9 +63,9 @@ Put app-specific features under `src/features/<feature>`. Screens call service f
 
 ## Extend it
 
-For onboarding, edit `appDefinition.onboarding`; wait for `useOnboardingStore` hydration before rendering the app. The shared gate, progress, conditions, copy interpolation, and standard analytics are already wired. Answers persist locally and sync to Supabase after sign-in when configured.
+For onboarding, edit `appDefinition.onboarding`. The shared gate, progress, conditions, copy interpolation, and standard analytics are already wired. Answers persist locally and sync to Supabase after sign-in when configured.
 
-For accounts, add your chosen login UI using the optional Supabase client. The provider owns downstream SDK synchronization. Add app-specific user caches to the identity cleanup callback. Queries should include user IDs in keys and honor cancellation signals. Do not enable paid backend operations based on client entitlement state: verify access on the server.
+Accounts use Sign in with Apple and Google (via Supabase OAuth) after the paywall. A purchase made while anonymous moves to the account when RevenueCat `logIn` runs. The provider owns downstream SDK synchronization. Add app-specific user caches to the identity cleanup callback. Queries should include user IDs in keys and honor cancellation signals. Do not enable paid backend operations based on client entitlement state: verify access on the server.
 
 For experiments, keep assignment in one owner (RevenueCat for paywall/offering experiments or your chosen feature flag service). Add typed variant properties to product events. Avoid separate competing assignments for the same experiment.
 

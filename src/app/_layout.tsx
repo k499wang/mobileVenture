@@ -1,36 +1,37 @@
 import * as Sentry from '@sentry/react-native';
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { DeepLinkHandler } from '@/components/deep-link-handler';
-import AppTabs from '@/components/app-tabs';
-import { AppProviders } from '@/providers/app-providers';
+import { AuthGate } from '@/features/auth/AuthGate';
 import { OnboardingGate } from '@/features/onboarding/OnboardingGate';
-import { appDefinition } from '@/config/app-definition';
+import { AppProviders } from '@/providers/app-providers';
 import { initializeErrorReporting, reportError } from '@/services/errors';
+import { useTheme } from '@/theme/theme';
 export { ErrorScreen as ErrorBoundary } from '@/components/error-screen';
 
 initializeErrorReporting();
 
 void SplashScreen.preventAutoHideAsync().catch(error => reportError(error, 'splash.prevent-hide'));
 
-function TabLayout() {
-  const deviceScheme = useColorScheme();
-  const colorScheme = appDefinition.brand.appearance === 'system' ? deviceScheme : appDefinition.brand.appearance;
-
+/** Flow: onboarding (ends with the soft paywall) → required sign-in → tabs. */
+function RootLayout() {
+  const theme = useTheme();
+  const navigationTheme = theme.dark ? DarkTheme : DefaultTheme;
   return (
     <AppProviders>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay color={appDefinition.brand.primary} />
+      <ThemeProvider value={{ ...navigationTheme, colors: { ...navigationTheme.colors, primary: theme.brand, background: theme.colors.page } }}>
+        <AnimatedSplashOverlay color={theme.brand} />
         <OnboardingGate>
-          <AppTabs />
-          <DeepLinkHandler />
+          <AuthGate>
+            <Stack screenOptions={{ headerShown: false }} />
+            <DeepLinkHandler />
+          </AuthGate>
         </OnboardingGate>
       </ThemeProvider>
     </AppProviders>
   );
 }
 
-export default Sentry.wrap(TabLayout);
+export default Sentry.wrap(RootLayout);

@@ -16,11 +16,13 @@ export type EventMap = {
   paywall_result: { placement: string; result: string };
   restore_completed: { active: boolean };
   core_action_completed: { action: string };
-  auth_completed: { provider: 'apple' | 'google' | 'email' };
-  auth_link_requested: { provider: 'email' };
+  auth_completed: { provider: 'apple' | 'google' };
   reminder_updated: { enabled: boolean };
   review_prompt_requested: Record<string, never>;
   account_deleted: Record<string, never>;
+  pro_gate_shown: { feature: string; unlocked: boolean };
+  support_contacted: Record<string, never>;
+  app_shared: Record<string, never>;
 };
 let posthog: PostHog | undefined;
 export function initializePostHog() {

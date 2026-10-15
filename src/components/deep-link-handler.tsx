@@ -9,7 +9,7 @@ export function DeepLinkHandler() {
   useEffect(() => {
     if (!navigation?.key || !pending) return;
     useDeepLinkStore.getState().consume();
-    router.push(pending === 'home' ? '/' : '/explore');
+    router.push(pending === 'home' ? '/' : '/settings');
   }, [navigation?.key, pending, router]);
   return null;
 }

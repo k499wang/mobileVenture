@@ -3,12 +3,12 @@
 ## App and environments
 
 - [ ] Replace template name, slug, identifiers, scheme, icons, splash, home screen, and ATT explanation.
-- [ ] Set privacy, terms, and support URLs in `src/config/app-definition.ts`.
+- [ ] Set privacy and terms URLs in `src/config/app-definition.ts`.
 - [ ] Configure separate development/preview/production EAS environments and vendor projects/keys.
-- [ ] Register matching store identifiers and RevenueCat apps. Android needs a Google public SDK key and its own products.
+- [ ] Register the bundle ID and RevenueCat app. Set `appStoreId` and `links.supportEmail` in app-definition.
 - [ ] Link this copy to its own EAS project. Configure signing and submission credentials.
 - [ ] `npm ci`, `npm run check`, and `npm run validate:release` pass.
-- [ ] Produce native release builds on each supported platform. Verify SDK 57 toolchain requirements.
+- [ ] Produce native release builds for iOS. Verify SDK 57 toolchain requirements.
 
 ## RevenueCat
 
@@ -26,7 +26,7 @@
 - [ ] Enable relevant partner postbacks and map exact case-sensitive event names.
 - [ ] Configure SKAN measurement and Meta interoperability; confirm conversion-value ownership.
 - [ ] Verify initial trial/purchase optimization signals, not only revenue appearing in a dashboard.
-- [ ] Set up OneLink, associated domains, and Android verified links if deep links are used; test installed and deferred flows.
+- [ ] Set up OneLink, associated domains if deep links are used; test installed and deferred flows.
 - [ ] Confirm no duplicate subscription revenue path exists through another SDK or server integration.
 
 ## Device smoke tests

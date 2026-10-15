@@ -1,4 +1,5 @@
-// TypeScript's resolver uses this fallback; Metro picks the native/web variant.
+import * as Notifications from 'expo-notifications';
+
 export async function requestNotificationPermission() {
-  return false;
+  return (await Notifications.requestPermissionsAsync()).granted;
 }

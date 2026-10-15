@@ -1,14 +1,17 @@
 import { type ErrorBoundaryProps } from 'expo-router';
 import { useEffect } from 'react';
-import { Button, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+
+import { Button, Screen, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { reportError } from '@/services/errors';
-import { ThemedText } from './themed-text';
+
 export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
   useEffect(() => { reportError(error, 'ui.render'); }, [error]);
-  return <View style={styles.container}>
-    <ThemedText type="subtitle">Something went wrong</ThemedText>
-    <ThemedText>Please try again.</ThemedText>
-    <Button title="Try again" onPress={retry} />
-  </View>;
+  return <Screen scroll={false} style={styles.container}>
+    <Text variant="title">{t('common.error')}</Text>
+    <Text color="muted">{t('common.tryAgain')}</Text>
+    <Button title="Try again" onPress={() => void retry()} />
+  </Screen>;
 }
-const styles = StyleSheet.create({ container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 } });
+const styles = StyleSheet.create({ container: { justifyContent: 'center' } });

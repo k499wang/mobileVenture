@@ -7,7 +7,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const suffix = environment === 'production' ? '' : `.${environment}`;
   const name = process.env.APP_NAME ?? config.name ?? 'Starter';
   const bundle = process.env.APP_BUNDLE_ID ?? config.ios?.bundleIdentifier ?? 'com.example.starter';
-  const androidPackage = process.env.APP_ANDROID_PACKAGE ?? config.android?.package ?? bundle;
   const plugins = [...(config.plugins ?? [])];
   if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
     plugins.push(['@sentry/react-native/expo', {
@@ -20,7 +19,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: process.env.APP_SLUG ?? config.slug ?? 'starter',
     scheme: `${process.env.APP_SCHEME ?? 'starter'}${environment === 'production' ? '' : `-${environment}`}`,
     ios: { ...config.ios, bundleIdentifier: `${bundle}${suffix}` },
-    android: { ...config.android, package: `${androidPackage}${suffix}` },
     plugins,
     extra: { ...config.extra, studio: appConfig },
   };

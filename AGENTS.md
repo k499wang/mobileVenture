@@ -21,25 +21,25 @@ Then `cd ../my-app`, run `npm install`, copy `.env.example` to `.env`, and run `
 
 ## Configuration and onboarding
 
-`src/config/app-definition.ts` is the per-app control panel: stable `id`, name, brand/appearance, legal links, RevenueCat placement, reminder copy/time, and the ordered onboarding list. Bump `onboardingVersion` whenever a shipped flow needs to show again.
+`src/config/app-definition.ts` is the per-app control panel: stable `id`, name, legal/support links, App Store ID, `auth.required`, RevenueCat placement, reminder copy/time, `tabs`, and the ordered onboarding list. All styling lives in `src/theme/theme.ts`; shared components read only its tokens via `useTheme()`. All copy is plain text or a key in `src/i18n/en.ts` resolved with `t()`. The app is iOS-only: do not add `.web`/`.android` variants. Bump `onboardingVersion` whenever a shipped flow needs to show again.
 
-Each onboarding item is a typed entry from `app-definition-types.ts`. Supported kinds are `info` (optional remote image/GIF), `select` (set `multiple: true` for multi-select), `text`, `slider`, `permission`, `loading`, `testimonial`, and `paywall`. `when` checks an earlier answer and copy accepts `{{answers.key}}`. The flow automatically owns progress, back navigation, transitions, persistence, and standard events. Add a new kind by extending the discriminated union and adding only its renderer in `OnboardingFlow`; do not fork existing step logic.
+Each onboarding item is a typed entry from `app-definition-types.ts`. Supported kinds are `info` (optional remote image/GIF), `video`, `select` (set `multiple: true` for multi-select), `text`, `slider`, `date`, `permission`, `loading`, `testimonial`, `rating`, `chart`, and `paywall`; `src/config/onboarding-examples.ts` has one of each. `when` checks an earlier answer and copy accepts `{{answers.key}}`. The flow automatically owns progress, back navigation, transitions, persistence, and standard events. Add a new kind by extending the discriminated union and adding only its `case` in `StepBody` in `OnboardingFlow`; do not fork existing step logic. The paywall step is soft: failures and dismissal continue. After onboarding, `AuthGate` requires Apple/Google sign-in when `auth.required` is true.
 
 Use the `tracking` permission kind for ATT. It is the only path that starts AppsFlyer. A skipped tracking step intentionally leaves attribution off. Notification permission/reminders are optional and controlled by `reminders`.
 
 ## Feature, storage, and UI rules
 
-Build the app-specific outcome in `src/features/<feature>` and replace the placeholder on `src/app/index.tsx`. Call `trackEvent('core_action_completed', { action })` after a meaningful outcome, then optionally `requestReviewAfterSuccess()`.
+Build the app-specific outcome in `src/features/<feature>` and export it from `src/app/(tabs)/index.tsx`. Gate premium actions with `requirePro(feature)` and premium UI with `<ProGate>`; never persist your own `isPro`. Build UI from `src/components/ui.tsx` primitives. Call `trackEvent('core_action_completed', { action })` after a meaningful outcome, then optionally `requestReviewAfterSuccess()`.
 
 Use `saveAppData`/`hydrateAppDataFromCloud` from `src/services/user-data.ts` for generic local-first JSON data. It writes AsyncStorage first and synchronizes only for signed-in users. App-specific database schema belongs in a new migration, not in shared UI state.
 
-Use `src/components/glass.tsx`: it chooses native Liquid Glass when available, blur otherwise, and opaque accessible surfaces for Reduce Transparency. Pass the configured brand color; never make every surface glass or hard-code a brand into shared components.
+Use `src/components/glass.tsx`: it chooses native Liquid Glass when available, blur otherwise, and opaque accessible surfaces for Reduce Transparency. Toggle it globally with `theme.glass`; never make every surface glass or hard-code colors into components.
 
 ## Integrations and dashboard setup
 
 All public runtime values belong in `.env`/EAS environment variables. Missing values disable that integration safely in development.
 
-- **Supabase:** create a project; set URL and publishable key; enable Email, Apple, and Google providers; add `<scheme>://auth/callback` redirects. Run `supabase db push`, deploy `delete-account` and `revenuecat-webhook`, then store their server secrets with `supabase secrets set`. The migration enables RLS; clients can only access their own rows. Never expose `SUPABASE_SERVICE_ROLE_KEY`.
+- **Supabase:** create a project; set URL and publishable key; enable the Apple and Google providers; add `<scheme>://auth/callback` redirects. Run `supabase db push`, deploy `delete-account` and `revenuecat-webhook`, then store their server secrets with `supabase secrets set`. The migration enables RLS; clients can only access their own rows. Never expose `SUPABASE_SERVICE_ROLE_KEY`.
 - **RevenueCat:** create an app per store identifier, connect App Store Connect/Play, add weekly/annual products and a `pro` entitlement, then make an offering/paywall and the `default` placement. Enable Customer Center and verify restore. Set platform public SDK keys and the entitlement ID.
 - **AppsFlyer:** create the app, set dev key and numeric iOS app ID, configure SKAdNetwork/OneLink/associated domains as needed. In RevenueCat’s AppsFlyer integration, use the AppsFlyer dev key and map subscription events there—RevenueCat is the revenue owner. The app only sends non-revenue funnel events.
 - **RevenueCat webhook:** set the webhook URL to the deployed `revenuecat-webhook` function and a bearer secret matching `REVENUECAT_WEBHOOK_SECRET`; set `REVENUECAT_APP_ID_TO_SLUG` to map RevenueCat app IDs to `appDefinition.id`. It updates server-side subscription status.

@@ -13,3 +13,11 @@ export function interpolate(template: string | undefined, answers: Answers) {
   }).replace(/\s+,/g, ',').replace(/,\s*,/g, ',').trim();
 }
 export function hasAnswer(value: Answer | undefined) { return Array.isArray(value) ? value.length > 0 : value !== undefined && value !== ''; }
+
+/** Steps with a default value (slider, date) or `optional: true` never block Continue. */
+export function canAdvance(step: OnboardingStep, answers: Answers) {
+  if (step.type === 'slider' || step.type === 'date') return true;
+  if (!('answerKey' in step)) return true;
+  if ('optional' in step && step.optional) return true;
+  return hasAnswer(answers[step.answerKey]);
+}

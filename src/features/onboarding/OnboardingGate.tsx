@@ -11,6 +11,8 @@ import { requestTrackingConsent } from '@/services/attribution';
 import { useOnboardingStore } from '@/store/onboarding-store';
 import { requestNotificationPermission } from '@/services/notification-permissions';
 import { setDailyReminderEnabled } from '@/services/reminders';
+import { reportError } from '@/services/errors';
+import { requestReviewAfterSuccess } from '@/services/review';
 import { syncOnboardingFromCloud } from '@/services/onboarding-data';
 
 export function OnboardingGate({ children }: PropsWithChildren) {
@@ -35,17 +37,23 @@ export function OnboardingGate({ children }: PropsWithChildren) {
       else trackEvent('onboarding_answered', { stepId: String(properties.step_id), answerKey: String(properties.answer_key) });
     },
     requestPermission: async (permission: 'notifications' | 'tracking') => {
-      if (permission === 'tracking') { await requestTrackingConsent(); return; }
-      const granted = await requestNotificationPermission();
-      if (granted && appDefinition.reminders.enabled) await setDailyReminderEnabled(true);
+      try {
+        if (permission === 'tracking') { await requestTrackingConsent(); return; }
+        const granted = await requestNotificationPermission();
+        if (granted && appDefinition.reminders.enabled) await setDailyReminderEnabled(true);
+      } catch (error) { reportError(error, `onboarding.permission.${permission}`); }
     },
-    presentPaywall: async () => { await presentPaywall(appDefinition.subscription.offeringPlacement); },
+    // Soft paywall: a failure or dismissal must never trap the user in onboarding.
+    presentPaywall: async () => {
+      try { await presentPaywall(appDefinition.subscription.offeringPlacement); }
+      catch (error) { reportError(error, 'onboarding.paywall'); }
+    },
+    requestRating: async () => { await requestReviewAfterSuccess().catch(error => reportError(error, 'onboarding.rating')); },
   }), []);
   if (!hydrated) return <View style={styles.loading}><ActivityIndicator /></View>;
   if (completedVersion === appDefinition.onboardingVersion) return children;
   return <OnboardingFlow
     steps={appDefinition.onboarding}
-    brandColor={appDefinition.brand.primary}
     initialAnswers={answers}
     initialPosition={step}
     onAnswer={(key: string, value: Answer) => setAnswer(key, value)}

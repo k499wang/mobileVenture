@@ -20,8 +20,8 @@ function parametersFromUrl(url: string) {
   return parameters;
 }
 
-/** Completes PKCE and implicit Supabase callbacks delivered through the app scheme. */
-export async function completeAuthFromUrl(url: string) {
+/** Completes the PKCE or implicit OAuth callback returned to the app scheme. */
+async function completeAuthFromUrl(url: string) {
   const client = requireSupabase();
   const params = parametersFromUrl(url);
   const code = params.get('code');
@@ -35,17 +35,7 @@ export async function completeAuthFromUrl(url: string) {
     const { error } = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
     if (error) throw error;
   }
-  if (params.get('type') === 'magiclink' || params.get('type') === 'signup') trackEvent('auth_completed', { provider: 'email' });
   return true;
-}
-
-/** Sends a magic-link email. The session is stored by the existing Supabase client. */
-export async function signInWithEmail(email: string) {
-  const client = requireSupabase();
-  const redirectTo = Linking.createURL('auth/callback');
-  const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-  if (error) throw error;
-  trackEvent('auth_link_requested', { provider: 'email' });
 }
 
 /** Opens Supabase's configured Google OAuth flow and saves the returned native session. */
@@ -54,10 +44,9 @@ export async function signInWithGoogle() {
   const redirectTo = Linking.createURL('auth/callback');
   const { data, error } = await client.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo, skipBrowserRedirect: Platform.OS !== 'web' },
+    options: { redirectTo, skipBrowserRedirect: true },
   });
   if (error) throw error;
-  if (Platform.OS === 'web') return;
   if (!data.url) throw new Error('Google sign-in could not be started.');
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success' || !result.url) return;
