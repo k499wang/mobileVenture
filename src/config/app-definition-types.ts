@@ -1,5 +1,7 @@
 import type { SFSymbol } from 'expo-symbols';
 
+import type { MascotPose } from '@/components/mascot';
+
 export type PrimitiveAnswer = string | number | boolean;
 export type Answer = PrimitiveAnswer | PrimitiveAnswer[];
 export type Answers = Record<string, Answer | undefined>;
@@ -8,7 +10,8 @@ export type Answers = Record<string, Answer | undefined>;
 export type Copy = string;
 
 export type Condition = { answer: string; equals?: PrimitiveAnswer; includes?: PrimitiveAnswer; exists?: boolean };
-type StepBase = { id: string; title: Copy; body?: Copy; when?: Condition; cta?: Copy };
+/** `mascot` shows a pose from components/mascot.tsx above the title. */
+type StepBase = { id: string; title: Copy; body?: Copy; when?: Condition; cta?: Copy; mascot?: MascotPose };
 type Choice = { value: string; label: Copy; detail?: Copy };
 
 /** A remote image or animated GIF. Keep media optional so an app never depends on it. */

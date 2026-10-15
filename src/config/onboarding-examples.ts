@@ -9,6 +9,7 @@ import type { OnboardingStep } from '@/config/app-definition-types';
  *   title   plain text or an i18n key; supports {{answers.someKey}}
  *   body?   same as title
  *   cta?    button label (default "Continue")
+ *   mascot? a pose name from components/mascot.tsx, shown above the title
  *   when?   { answer: 'goal', equals: 'calm' } | { answer: 'interests', includes: 'habits' } | { answer: 'firstName', exists: true }
  */
 export const onboardingExamples: readonly OnboardingStep[] = [

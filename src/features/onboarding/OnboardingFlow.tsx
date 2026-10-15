@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Mascot } from '@/components/mascot';
 import { Button, Input, OptionCard, Text } from '@/components/ui';
 import type { Answer, Answers, ChartStep, OnboardingStep, VideoStep } from '@/config/app-definition-types';
 import { canAdvance, hasAnswer, interpolate, stepIsVisible } from '@/features/onboarding/logic';
@@ -69,6 +70,7 @@ export function OnboardingFlow({ steps, onComplete, callbacks = {}, initialAnswe
     <View style={[styles.progressTrack, { backgroundColor: theme.colors.line }]}><View style={[styles.progressTrack, { backgroundColor: theme.brand, width: `${((safePosition + 1) / visibleSteps.length) * 100}%` }]} /></View>
     {safePosition > 0 ? <Pressable onPress={() => setPosition((value) => value - 1)} accessibilityRole="button" hitSlop={12}><Text variant="label" color="muted">{t('common.back')}</Text></Pressable> : <View />}
     <Animated.View style={[styles.fill, { gap: theme.spacing.lg, opacity: transition, transform: [{ translateY: transition.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}>
+      {step.mascot ? <Mascot pose={step.mascot} style={styles.center} /> : null}
       <View style={{ gap: theme.spacing.sm + 2 }}>
         <Text variant="title">{interpolate(t(step.title), answers)}</Text>
         {step.body ? <Text color="muted">{interpolate(t(step.body), answers)}</Text> : null}
