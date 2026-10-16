@@ -1,0 +1,13 @@
+{
+  "name": "venture-studio-tools",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-only dependencies for the local research and creative studio; excluded from generated apps.",
+  "dependencies": {
+    "sharp": "0.35.5"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

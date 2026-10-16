@@ -47,3 +47,4 @@ example
 
 # Local agent checkpoints, generated prototypes, and traces
 .agent-runs/
+factory/agent/integrations.json
