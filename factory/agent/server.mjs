@@ -1,8 +1,12 @@
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { readFile, lstat, open } from 'node:fs/promises';
 import path from 'node:path';
 import { ROLES } from './roles.mjs';
 import { isRunId } from './store.mjs';
+import { SAMPLES } from './samples.mjs';
+import { loadCuratedResearch } from './research/index.mjs';
+import { createHash } from 'node:crypto';
 
 const staticFiles = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
 
@@ -41,7 +45,37 @@ export function createStudioServer(studio) {
       }
       if (request.method === 'GET' && url.pathname === '/api/config') return json(200, {
         liveAvailable: studio.liveAvailable, model: studio.model ?? '', roles: ROLES,
+        integrations: await studio.integrationStatus?.() ?? [],
+        samples: SAMPLES,
       });
+      if (request.method === 'GET' && url.pathname.startsWith('/api/research/previews/')) {
+        const filename = decodeURIComponent(url.pathname.slice('/api/research/previews/'.length));
+        const curated = await loadCuratedResearch();
+        const source = curated.records.find(record => record.ad?.previewFilename === filename);
+        if (!source || filename !== path.basename(filename)) return json(404, { error: 'Research preview not found.' });
+        const file = new URL(`./research/previews/${filename}`, import.meta.url);
+        const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+        let content;
+        try {
+          const info = await handle.stat();
+          if (!info.isFile() || info.size > 12_000_000) throw new Error('Invalid research preview.');
+          content = await handle.readFile();
+        } finally { await handle.close(); }
+        if (createHash('sha256').update(content).digest('hex') !== source.ad.previewSha256) throw new Error('Research preview integrity check failed.');
+        response.writeHead(200, { 'Content-Type': source.ad.previewMimeType, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store',
+          'Content-Security-Policy': "sandbox; default-src 'none'" });
+        response.end(content);
+        return;
+      }
+      if (request.method === 'GET' && url.pathname === '/api/integrations') return json(200, { integrations: await studio.integrationStatus?.() ?? [] });
+      const sampleMatch = url.pathname.match(/^\/api\/samples\/([a-z-]+)$/);
+      if (request.method === 'POST' && sampleMatch) {
+        await readBody(request);
+        const state = await studio.create({ sampleId: sampleMatch[1] });
+        json(201, state);
+        studio.start(state.id).catch(error => process.stderr.write(`Sample workflow error: ${error.message}\n`));
+        return;
+      }
       if (request.method === 'GET' && url.pathname === '/api/runs') return json(200, { runs: await studio.store.list() });
       if (request.method === 'POST' && url.pathname === '/api/runs') {
         const input = await readBody(request);
@@ -50,11 +84,35 @@ export function createStudioServer(studio) {
         studio.start(state.id).catch(error => process.stderr.write(`Workflow error: ${error.message}\n`));
         return;
       }
-      const match = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(approve|pause|resume|export|files|file))?$/);
+      const match = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(approve|pause|resume|export|files|file|creatives)(?:\/([^/]+))?)?$/);
       if (!match || !isRunId(match[1])) return json(404, { error: 'Endpoint not found.' });
       const [, id, action] = match;
       const state = await studio.get(id);
+      if (match[3] && action !== 'creatives') return json(404, { error: 'Endpoint not found.' });
       if (request.method === 'GET' && !action) return json(200, state);
+      if (request.method === 'GET' && action === 'creatives') {
+        if (!state.creativePack) return json(404, { error: 'The creative pack has not been rendered yet.' });
+        if (!match[3]) return json(200, state.creativePack);
+        const filename = decodeURIComponent(match[3]);
+        const allowed = new Set([...(state.creativePack.assets ?? []).map(asset => asset.filename), 'manifest.json', 'ad-copy.csv', 'source-references.json', 'qa.json', 'research-dossier.json', 'launch-pack.zip']);
+        if (filename !== path.basename(filename) || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(filename) || !allowed.has(filename)) return json(404, { error: 'Creative asset not found.' });
+        const directory = path.join(studio.store.directory(id), 'creatives');
+        const entry = await lstat(directory);
+        if (!entry.isDirectory() || entry.isSymbolicLink()) throw new Error('Unsafe creative directory.');
+        const handle = await open(path.join(directory, filename), constants.O_RDONLY | constants.O_NOFOLLOW);
+        let content;
+        try {
+          const info = await handle.stat();
+          if (!info.isFile() || info.size > 12_000_000) throw new Error('Invalid creative asset.');
+          content = await handle.readFile();
+        } finally { await handle.close(); }
+        const types = { '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.csv': 'text/csv', '.zip': 'application/zip' };
+        response.writeHead(200, { 'Content-Type': types[path.extname(filename)] ?? 'application/octet-stream', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store',
+          'Content-Security-Policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+          'Content-Disposition': `${path.extname(filename) === '.png' && !url.searchParams.has('download') ? 'inline' : 'attachment'}; filename="${filename}"` });
+        response.end(content);
+        return;
+      }
       if (request.method === 'GET' && action === 'export') return json(200, state,
         { 'Content-Disposition': `attachment; filename="venture-trace-${id}.json"` });
       if (request.method === 'GET' && ['files', 'file'].includes(action)) {

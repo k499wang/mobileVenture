@@ -14,6 +14,10 @@ async function harness(options = {}) {
   const files = new Map();
   let checks = 0;
   let generations = 0;
+  let renders = 0;
+  const creativeRenderer = async () => { renders++; return { assets: [], manifestFilename: 'manifest.json' }; };
+  const creativeValidator = async () => ({ ok: true, checks: [{ name: 'test-only-creative-pack-fixture', passed: true, detail: 'Fixture result; real PNGs are covered by renderer tests.' }] });
+  const launchArchiver = async () => ({ archiveFilename: 'fixture.zip' });
   const workspaceFactory = async ({ injectFailure }) => ({
     definitions: workspaceToolDefinitions, workspace: '/test/workspace',
     execute: async (name, args) => {
@@ -28,16 +32,18 @@ async function harness(options = {}) {
       throw new Error(`Unexpected tool: ${name}`);
     },
   });
-  return { studio: new VentureStudio({ runsDir, workspaceFactory, ...options }), files, getChecks: () => checks, getGenerations: () => generations, runsDir, workspaceFactory };
+  return { studio: new VentureStudio({ runsDir, workspaceFactory, creativeRenderer, creativeValidator, launchArchiver, ...options }), files, getChecks: () => checks, getGenerations: () => generations, getRenders: () => renders,
+    runsDir, workspaceFactory, creativeRenderer, creativeValidator, launchArchiver };
 }
 
 test('parallel research, critique follow-up, hash approval and repair complete with persisted traces', async () => {
-  const { studio, getChecks, getGenerations } = await harness();
+  const { studio, getChecks, getGenerations, getRenders } = await harness();
   const run = await studio.create({ brief: 'Investigate flexible routines for changing work schedules.', injectFailure: true });
   await studio.start(run.id);
   assert.equal(run.status, 'awaiting_approval');
   assert.equal(run.round, 1);
   assert.equal(getGenerations(), 0, 'no source generation before approval');
+  assert.equal(getRenders(), 0, 'no ad exports before specification approval');
   assert.equal(run.artifacts.critic.verdict, 'accept');
   await assert.rejects(studio.approve(run.id, 'outdated-hash'), /changed/);
   await studio.approve(run.id, run.specHash);
@@ -46,17 +52,21 @@ test('parallel research, critique follow-up, hash approval and repair complete w
   assert.equal(run.repairAttempt, 1);
   assert.equal(getChecks(), 2);
   assert.equal(getGenerations(), 1);
+  assert.equal(Object.keys(run.artifacts).length, 13);
+  assert.equal(run.artifacts.persona.personas.length, 2);
+  assert.equal(run.artifacts.creative.creatives.length, 10);
+  assert.equal(run.artifacts.creative_qa.verdict, 'pass');
   assert.equal(run.budget.requests, 0, 'fixture runs never claim real model usage');
   assert(run.events.some(event => event.type === 'repair_requested'));
   assert.equal((await studio.store.read(run.id)).status, 'completed');
 });
 
 test('checkpoint resumes under a new supervisor without rerunning completed research', async () => {
-  const { studio, runsDir, workspaceFactory } = await harness();
+  const { studio, runsDir, workspaceFactory, creativeRenderer, creativeValidator, launchArchiver } = await harness();
   const run = await studio.create({ brief: 'Research a practical routine tracker for variable schedules.' });
   await studio.start(run.id);
   const completedResearchAttempts = run.tasks.researcher.attempt;
-  const restarted = new VentureStudio({ runsDir, workspaceFactory });
+  const restarted = new VentureStudio({ runsDir, workspaceFactory, creativeRenderer, creativeValidator, launchArchiver });
   await restarted.approve(run.id, run.specHash);
   const result = await restarted.start(run.id);
   assert.equal(result.status, 'completed');
