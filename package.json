@@ -73,7 +73,11 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.agent-runs/"
+    ],
     "testPathIgnorePatterns": [
+      "/.agent-runs/",
       "/node_modules/",
       "/ios/"
     ]

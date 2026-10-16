@@ -44,3 +44,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Local agent checkpoints, generated prototypes, and traces
+.agent-runs/

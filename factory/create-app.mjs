@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { cp, lstat, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import path from 'node:path';
 
 const foundationDirectory = path.resolve(import.meta.dirname, '..');
-const excludedTopLevelDirectories = new Set(['.git', '.expo', 'node_modules', 'factory', 'ios']);
+const excludedTopLevelDirectories = new Set(['.git', '.expo', '.agent-runs', '.agents', '.codex', '.aws', 'node_modules', 'factory', 'ios', 'android', 'coverage', 'dist']);
 const excludedFiles = new Set(['.env', 'package-lock.json']);
+const textExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.md', '.yml', '.yaml', '.sh', '.sql', '.toml', '.css', '.html', '.txt', '.svg', '.xml', '.plist', '.example']);
+const secretExtensions = new Set(['.pem', '.key', '.p8', '.p12', '.jks', '.mobileprovision']);
 const args = process.argv.slice(2);
 const destinationArgument = args.find((arg) => !arg.startsWith('--'));
 
@@ -45,7 +47,7 @@ async function replaceTokens(directory, tokens) {
       continue;
     }
 
-    if (entry.endsWith('.png') || entry.endsWith('.jpg') || entry.endsWith('.ico')) continue;
+    if (!textExtensions.has(path.extname(entry)) && !['.gitignore', 'LICENSE'].includes(entry)) continue;
     let content = await readFile(absolutePath, 'utf8');
     for (const [token, value] of Object.entries(tokens)) content = content.replaceAll(token, value);
     await writeFile(absolutePath, content);
@@ -71,6 +73,9 @@ async function configureExpoProject(directory, values) {
   const packagePath = path.join(directory, 'package.json');
   const packageJson = JSON.parse(await readFile(packagePath, 'utf8'));
   packageJson.name = values.slug;
+  for (const script of Object.keys(packageJson.scripts ?? {})) {
+    if (script === 'factory:create' || script.startsWith('agent:')) delete packageJson.scripts[script];
+  }
   await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 }
 
@@ -94,18 +99,29 @@ async function main() {
     if (!slug) throw new Error('The app slug must include letters or numbers.');
     if (!/^#[0-9a-fA-F]{6}$/.test(brandColor)) throw new Error('Brand color must be a six-digit hex color, such as #6C5CE7.');
     if (!(await directoryIsEmpty(target))) throw new Error(`Destination is not empty: ${target}`);
-    if (target.startsWith(`${foundationDirectory}${path.sep}`)) throw new Error('Create an app outside the factory repository so it cannot copy itself.');
+    const agentRoot = path.join(foundationDirectory, '.agent-runs');
+    if (target.startsWith(`${foundationDirectory}${path.sep}`) && !target.startsWith(`${agentRoot}${path.sep}`)) {
+      throw new Error('Create an app outside the factory repository or inside .agent-runs.');
+    }
 
     await mkdir(path.dirname(target), { recursive: true });
-    await cp(foundationDirectory, target, {
-      recursive: true,
-      filter: (source) => {
+    await mkdir(target, { recursive: true });
+    const copyFilter = async (source) => {
         const relative = path.relative(foundationDirectory, source);
         if (!relative) return true;
         const topLevel = relative.split(path.sep)[0];
-        return !excludedTopLevelDirectories.has(topLevel) && !excludedFiles.has(relative);
-      },
-    });
+        const basename = path.basename(source);
+        return !excludedTopLevelDirectories.has(topLevel) && !excludedFiles.has(relative)
+          && !(basename.startsWith('.env') && basename !== '.env.example')
+          && !secretExtensions.has(path.extname(basename))
+          && !(await lstat(source)).isSymbolicLink();
+    };
+    // Copy entries separately: fs.cp forbids copying a directory into itself,
+    // even when the destination subtree is excluded by its filter.
+    for (const entry of await readdir(foundationDirectory)) {
+      const source = path.join(foundationDirectory, entry);
+      if (await copyFilter(source)) await cp(source, path.join(target, entry), { recursive: true, filter: copyFilter });
+    }
     await replaceTokens(target, {
       '__APP_NAME__': name,
       '__APP_SLUG__': slug,
