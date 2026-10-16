@@ -91,3 +91,15 @@ OTA updates are not configured. Add EAS Update only when needed, with runtime co
 Record `appConfig.templateVersion` in every app. Keep a changelog of foundation fixes and apply relevant changes to app repositories. Extract a shared package only after multiple shipped apps establish a stable common API. Avoid a large plugin framework or a shared mutable backend just to reuse a few service modules. See `AGENTS.md` for the full factory workflow.
 
 See [event ownership](docs/measurement.md) and [launch checklist](docs/launch-checklist.md).
+
+## Multi-agent research and prototyping
+
+Run `npm run agent:studio` and open **http://127.0.0.1:4317** to use the local
+Venture Studio console. Eight roles coordinate market research, critical review,
+product specification, app generation, verification and experiment planning.
+The demo needs no API key and labels its research fixtures; generated source,
+checks, approval gates, persistence and failure recovery execute for real.
+
+Run `npm run agent:demo` for the unattended repair demonstration, or
+`npm run agent:test` for the agent tests. See the [setup and architecture](factory/agent/README.md)
+and [interview walkthrough](factory/agent/WALKTHROUGH.md) for live mode and recording instructions.

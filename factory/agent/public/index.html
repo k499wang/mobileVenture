@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Venture Studio · Agent console</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Venture Studio home"><span class="brand-mark">v<span>↗</span></span><span>venture<span class="brand-sub">STUDIO / LOCAL</span></span></a>
+        <div class="workspace-label"><span class="online-dot"></span> App factory workspace</div>
+        <button class="new-run" id="new-run"><span>＋</span> New investigation <kbd>N</kbd></button>
+        <div class="sidebar-heading">YOUR RUNS <span id="run-count">0</span></div>
+        <nav id="run-list" aria-label="Investigation history"><p class="sidebar-empty">Your investigations will appear here.</p></nav>
+        <div class="sidebar-bottom"><span class="shield-icon">◇</span><div>Bounded by design<small>Local files. Explicit approval.<br />Inspectable execution.</small></div></div>
+      </aside>
+      <div class="main-shell">
+        <header class="topbar"><div class="breadcrumbs">Workspace <span>/</span> <strong id="breadcrumb">New investigation</strong></div><div class="runtime"><span class="online-dot" id="connection-dot"></span><span id="connection-status">Connecting</span></div></header>
+        <main>
+          <div class="page-heading"><div><div class="eyebrow">RESEARCH → DECISION → PROTOTYPE</div><h1>From a question.<br /><span>To something real.</span></h1><p class="page-description">A coordinated team of agents, one inspectable workflow.</p></div><div class="heading-badge"><span>8</span> specialized agents<br /><small>One shared mission</small></div></div>
+          <div class="notice" id="mode-notice"><span class="notice-icon">◈</span><div><strong>Replayable demo environment</strong><span>Uses labeled fixtures to exercise the workflow. Research is illustrative, not live market evidence.</span></div><span class="notice-tag">NO API KEY NEEDED</span></div>
+          <section class="mission-panel" aria-labelledby="mission-heading">
+            <div class="section-top"><h2 id="mission-heading"><span class="number-label">01</span> Define the mission</h2><span class="muted mono">HUMAN → TEAM</span></div>
+            <form id="mission-form">
+              <label class="sr-only" for="brief">Market investigation brief</label><textarea id="brief" rows="3" placeholder="What market should the team investigate?" required minlength="12">Investigate habit apps for people with irregular schedules. Identify an underserved need, challenge the evidence, and build a focused iOS prototype.</textarea>
+              <div class="mission-controls"><div class="mode-controls"><label for="run-mode" class="sr-only">Execution mode</label><select id="run-mode"><option value="demo">◈ Fixture demo</option><option value="live" id="live-option" disabled>● Live agents</option></select><label class="failure-control"><input id="inject-failure" type="checkbox" checked /><span>Demonstrate repair</span></label></div><button class="primary" id="launch" type="submit">Launch investigation <span>↗</span></button></div>
+            </form>
+            <div id="live-help" class="form-help">Demo mode uses deterministic fixtures. No external model calls.</div>
+          </section>
+          <div id="error-banner" class="error-banner" role="alert" hidden></div>
+          <section class="execution-section" aria-labelledby="execution-heading"><div class="section-top"><h2 id="execution-heading"><span class="number-label">02</span> The execution team</h2><span class="status-pill" id="run-status">READY TO START</span></div><div id="pipeline" class="pipeline"></div></section>
+          <div class="results-header"><div class="tabs" role="tablist" aria-label="Run details"><button role="tab" data-tab="overview" id="tab-overview" aria-controls="detail-panel" aria-selected="true" tabindex="0">Overview</button><button role="tab" data-tab="evidence" id="tab-evidence" aria-controls="detail-panel" aria-selected="false" tabindex="-1">Evidence</button><button role="tab" data-tab="specification" id="tab-specification" aria-controls="detail-panel" aria-selected="false" tabindex="-1">Specification</button><button role="tab" data-tab="trace" id="tab-trace" aria-controls="detail-panel" aria-selected="false" tabindex="-1">Trace <span id="event-count">0</span></button><button role="tab" data-tab="code" id="tab-code" aria-controls="detail-panel" aria-selected="false" tabindex="-1">Code</button></div><div class="run-actions" id="run-actions"></div></div>
+          <div class="results-layout"><section id="detail-panel" class="detail-panel" role="tabpanel" aria-labelledby="tab-overview" tabindex="0"></section><aside class="run-sidebar" aria-label="Run budget and controls"><div class="budget-card"><div class="eyebrow">EXECUTION BUDGET</div><div id="budget"></div></div><div class="guardrail-card"><span class="guardrail-icon">⌘</span><h3>Human in the loop</h3><p>The product specification requires approval before the builder can create a prototype.</p><div class="guardrail-rule"><span>↳</span> No automatic publishing</div><div class="guardrail-rule"><span>↳</span> Bounded tool access</div><div class="guardrail-rule"><span>↳</span> Persistent execution trace</div></div></aside></div>
+          <footer>VENTURE STUDIO <span>Built on the consumer app factory · Local development console</span></footer>
+        </main>
+      </div>
+    </div>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

@@ -69,7 +69,10 @@
     "check": "npm run typecheck && npm run lint && npm test -- --runInBand",
     "validate:release": "node scripts/validate-release.mjs",
     "eas-build-post-install": "node scripts/eas-post-install.mjs",
-    "factory:create": "node factory/create-app.mjs"
+    "factory:create": "node factory/create-app.mjs",
+    "agent:studio": "node factory/agent/cli.mjs serve",
+    "agent:demo": "node factory/agent/cli.mjs run --mode demo --auto-approve --inject-failure",
+    "agent:test": "node --test factory/agent/*.test.mjs"
   },
   "jest": {
     "preset": "jest-expo",

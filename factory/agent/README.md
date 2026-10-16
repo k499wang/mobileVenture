@@ -1,0 +1,190 @@
+# Venture Studio
+
+A local, eight-role research-to-prototype agent system around the consumer app
+factory. Submit a market brief, inspect evidence and skeptical review, approve a
+versioned product specification, and generate an independent Expo application.
+
+## Start here
+
+From the repository root, with foundation dependencies installed:
+
+```sh
+npm run agent:studio
+```
+
+Open **http://127.0.0.1:4317**. Leave **Fixture demo** selected and launch the
+sample investigation. Select **Review product specification**, inspect it, then
+**Approve specification & build**. The default repair demonstration injects one
+real TypeScript error into generated source. Verification catches it and the
+builder rewrites the source before verification runs again.
+
+Explore **Evidence**, **Specification**, **Trace**, and **Code**. Evidence IDs on
+features are clickable. Export downloads the complete run as JSON.
+
+The dashboard is separate local tooling. It does not change the foundation's
+existing mobile feature or require native rebuilding to use the console.
+
+### Terminal demo
+
+```sh
+npm run agent:demo
+# A custom brief, with a human approval checkpoint:
+node factory/agent/cli.mjs run --mode demo --brief "Investigate flexible routines for people with changing schedules."
+# Review the printed checkpoint, then supply the exact printed hash:
+node factory/agent/cli.mjs resume RUN_ID --approve SPEC_HASH
+node factory/agent/cli.mjs inspect RUN_ID
+```
+
+`agent:demo` explicitly supplies `--auto-approve` for unattended demonstrations.
+The dashboard never accepts automatic approval from its client.
+
+### Live agents
+
+Provide `OPENAI_API_KEY` and `OPENAI_MODEL` as **server process environment
+variables**, then restart `npm run agent:studio`. Select a model available to
+your API project that supports Responses function calling and web search. The
+runtime deliberately requires an explicit model rather than assuming access.
+An ignored server env file can be loaded with Node's `--env-file` option:
+
+```sh
+node --env-file=.env.agent factory/agent/cli.mjs serve
+```
+
+Do not put the API key in any `EXPO_PUBLIC_*` variable, browser code, generated
+application, recording, or committed file. The server does not automatically
+read the mobile app's `.env`. Live mode is disabled when either setting is
+absent. There is no silent fallback from live execution to fixtures.
+
+The live provider implements the documented [Responses function-calling
+loop](https://developers.openai.com/api/docs/guides/function-calling) with
+[hosted web search](https://developers.openai.com/api/docs/guides/tools-web-search).
+Role tasks use separate model contexts and tool permissions. Model access,
+network behavior, search quality, and live generated output still need testing
+with your own credentials; offline validation does not establish live quality.
+
+## What is real in a fixture run?
+
+| Capability | Fixture demo | Live mode |
+| --- | --- | --- |
+| Research and model decisions | Explicitly synthetic, deterministic fixtures | Responses API and hosted web search |
+| Agent handoffs and supervisor | Real | Real |
+| Schema, reference, permission and approval validation | Real | Real |
+| File generation and feature source | Real filesystem writes; fixed sample concept | Tool-driven implementation from approved specification |
+| TypeScript and regression checks | Real subprocesses | Real subprocesses |
+| Repair | Real failure injection; deterministic corrective writes | Model interprets actual verification results |
+| Run state, budgets, trace, pause/resume | Real | Real |
+| Native behavior or market validation | Not verified | Not automatically verified |
+
+Fixture mode always generates the same illustrative **Shift Flow** routine
+tracker. Changing its brief demonstrates context propagation, not open-ended
+product synthesis. Fictional competitors and `.example` evidence URLs are
+labeled; they must not be presented as completed market research.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  Brief[Market brief] --> Research[Market researcher]
+  Brief --> Competition[Competitive intelligence]
+  Research --> Analyst[Opportunity analyst]
+  Competition --> Analyst
+  Analyst --> Critic[Skeptical reviewer]
+  Critic -->|One bounded follow-up round| Research
+  Critic -->|One bounded follow-up round| Competition
+  Critic -->|Accept| Planner[Product architect]
+  Planner --> Approval[Human approval of specification hash]
+  Approval --> Builder[Application engineer]
+  Approval --> Experiments[Experiment designer]
+  Builder --> Verifier[Verification engineer]
+  Verifier -->|At most two repairs| Builder
+  Verifier -->|Pass| Result[Source, checks, trace and independent app]
+```
+
+- `orchestrator.mjs`: deterministic state machine, role-scoped dependencies,
+  parallel tasks, follow-up/repair limits, approval and artifact handoffs.
+- `roles.mjs`: role instructions and strict structured artifact schemas.
+- `provider.mjs`: bounded Responses tool loop and explicit fixture adapter.
+- `validation.mjs`: runtime schema checks, evidence references and source URL
+  provenance. A searched URL supports provenance, not proof that every claim is
+  correct; skeptical review and human inspection remain necessary.
+- `tools.mjs`: restricted source reads/writes, generation recovery, fixed checks.
+- `store.mjs`: serialized atomic checkpoints and per-run process locks.
+- `server.mjs`, `public/`: loopback dashboard, source browser and trace export.
+
+Research roles run concurrently. Each subsequent role receives only its declared
+dependency artifacts, the brief, and relevant verification feedback. Shared
+artifacts preserve task context across roles; they are not a shared unbounded
+chat transcript. Historical artifact versions remain in the event trace.
+
+Approval records the SHA-256 of the specification. A changed specification cannot
+use an earlier approval. Research may request one follow-up round; unresolved
+evidence gaps stop execution. Verification can request two repairs; unresolved
+failures remain visible. An experiment artifact is a proposal, never a claim of
+completed product experiments.
+
+The shared budget permits at most 40 model requests, 100 tool reservations and
+6,000 output tokens per request. Hosted research search reserves a tool slot
+conservatively even when the model does not use it; the dashboard counts
+reservations rather than claiming exact billable search calls. Token usage is
+reported from API responses. No dollar-cost estimates are invented.
+
+## Persistence and tool boundaries
+
+Run files live under ignored `.agent-runs/RUN_ID/`. `state.json` is the durable
+checkpoint and trace. `workspace/` contains the full generated app.
+
+Pause takes effect after the current parallel tasks reach a checkpoint. On server
+restart, interrupted runs without a live process lock become resumable. Completed
+tasks with matching input hashes are reused. Generation has a separate staging
+journal and identity check so replay does not create another application.
+An interrupted model task may be reissued; its partial conversation is not
+persisted. Request reservations survive checkpoints and are not refunded.
+
+Researchers cannot write files. The builder can write only TypeScript source in
+`src/features/venture/` and `src/app/(tabs)/index.tsx`. It cannot modify tests,
+dependencies, configuration, authentication, billing, native code or secrets.
+Reads reject secret files, path traversal and symbolic links. No model-authored
+shell commands or npm lifecycle hooks are executed.
+
+Verification uses the installed foundation compiler, a controlled dependency
+symlink, and fixed foundation Jest test paths. It does not execute model-authored
+tests. Child environments exclude API credentials and preload hooks. These are
+application-level controls, **not an operating-system sandbox**. Review generated
+source before running it on a simulator, and use a real sandbox/container before
+offering execution to untrusted remote users. The console binds only to loopback,
+checks Host/Origin, and should remain a local tool.
+
+The factory excludes runs, tooling, native folders, secret files, dependencies,
+and Git metadata from generated applications. Binary assets are copied without
+text replacement. Run artifacts can contain your brief and public source data;
+inspect exports before sharing.
+
+## Verification and native preview
+
+```sh
+npm run agent:test
+npm run typecheck
+npm run lint
+npm test -- --runInBand
+```
+
+The agent test suite covers permissions, provenance, budgets, stale approvals,
+pause/resume, stateless API continuation, staging recovery, and local-server
+origin checks. `npm run agent:demo` additionally exercises actual app generation,
+type checking, regression tests and repair. Server tests need permission to bind
+to loopback when run in a restricted environment.
+
+To inspect native behavior, use the workspace printed by a completed run:
+
+```sh
+cd .agent-runs/RUN_ID/workspace
+npm run ios
+```
+
+The generated application retains the foundation's onboarding/auth/settings and
+dev-only unconfigured-service behavior. It is a development prototype. Complete
+the original release checklist, vendor setup and real-device checks before any
+release. TypeScript success and the foundation's tests do not prove that every
+new feature acceptance criterion behaves correctly on a device.
+
+See [the recording walkthrough](WALKTHROUGH.md) for a concise interview demo.
