@@ -35,6 +35,10 @@ Use `saveAppData`/`hydrateAppDataFromCloud` from `src/services/user-data.ts` for
 
 Use `src/components/glass.tsx`: it chooses native Liquid Glass when available, blur otherwise, and opaque accessible surfaces for Reduce Transparency. Toggle it globally with `theme.glass`; never make every surface glass or hard-code colors into components.
 
+## Pet / game module (Finch-style)
+
+Optional, switched by `enabled` in `src/config/game-definition.ts` (tuning: pet stages → mascot poses, currency, energy, action rewards, XP curve, adventure timing, quest counts, Pro perks). Content (adventures, encounters, items, collectibles, quests, dialogue) is a typed pack in `src/content/pet-content.ts`; write new packs by hand in the session, never via an API script. Rules live in the pure, deterministic `src/features/pet/engine.ts` (tested in `engine.test.ts`); `store.ts` adds persistence, cloud sync via `saveAppData`, notifications, and analytics. Never punish missed days: streaks restart with a welcome back and nothing is lost. Add an app-specific action by adding it to `actions` and calling `usePetStore.getState().logAction('id')`. Without a pet, set `enabled: false` and remove the `shop` tab entry and `src/app/(tabs)/shop.tsx`.
+
 ## Integrations and dashboard setup
 
 All public runtime values belong in `.env`/EAS environment variables. Missing values disable that integration safely in development.

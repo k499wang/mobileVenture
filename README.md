@@ -17,6 +17,8 @@ An iOS-only Expo SDK 57 starter for subscription apps. Flow: **onboarding → so
 | Make sign-in optional | `auth: { required: false }` in app-definition |
 | Build UI | primitives in `src/components/ui.tsx`: `Screen`, `Text`, `Button`, `Card`, `Section`, `ListRow`, `OptionCard`, `Input`, `Chip` |
 
+Pet apps (Finch-style): tune `src/config/game-definition.ts`, swap the content pack in `src/content/pet-content.ts`, and wearables' positions in `src/features/pet/PetAvatar.tsx`. Loop: check-ins/goals → energy, carrots, XP → timed adventure → story + collectible → shop/closet → daily/weekly quests.
+
 Onboarding step kinds: `info`, `video`, `select` (single/multi), `text`, `slider`, `date`, `testimonial`, `rating`, `permission` (`tracking` or `notifications`), `loading`, `chart`, `paywall`. Bump `onboardingVersion` to show a changed flow to existing users.
 
 ## Start an app

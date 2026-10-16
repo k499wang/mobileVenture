@@ -23,6 +23,11 @@ export type EventMap = {
   pro_gate_shown: { feature: string; unlocked: boolean };
   support_contacted: Record<string, never>;
   app_shared: Record<string, never>;
+  pet_level_up: { level: number };
+  quest_completed: { questId: string };
+  adventure_started: Record<string, never>;
+  adventure_collected: { found: boolean };
+  item_purchased: { itemId: string };
 };
 let posthog: PostHog | undefined;
 export function initializePostHog() {

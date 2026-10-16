@@ -18,12 +18,15 @@ export const appDefinition = {
   /** Add a tab: add an entry here and a matching file in src/app/(tabs)/. */
   tabs: [
     { name: 'index', title: 'tabs.home', icon: { default: 'house', selected: 'house.fill' } },
+    // Pet apps only (gameDefinition.enabled). Remove this line and src/app/(tabs)/shop.tsx otherwise.
+    { name: 'shop', title: 'tabs.shop', icon: { default: 'bag', selected: 'bag.fill' } },
     { name: 'settings', title: 'tabs.settings', icon: { default: 'gearshape', selected: 'gearshape.fill' } },
   ],
 
   /** Add, remove, or reorder steps. They run top to bottom; `when` skips a step conditionally. */
   onboarding: [
     { id: 'welcome', type: 'info', mascot: 'wave', title: 'Make space for what matters', body: 'A small daily practice, built around you.', cta: 'Get started' },
+    { id: 'pet-name', type: 'text', mascot: 'smile', title: 'Name your new friend', body: 'They will grow alongside you.', answerKey: 'petName', placeholder: 'Bun' },
     { id: 'goal', type: 'select', title: 'What brings you here?', body: 'We will tailor your starting point.', answerKey: 'goal', options: [{ value: 'focus', label: 'More focus' }, { value: 'calm', label: 'More calm' }, { value: 'routine', label: 'A better routine' }] },
     { id: 'interests', type: 'select', multiple: true, title: 'Choose anything that sounds useful', body: 'Select all that apply.', answerKey: 'interests', options: [{ value: 'habits', label: 'Building habits' }, { value: 'clarity', label: 'Feeling clear-headed' }, { value: 'energy', label: 'Protecting my energy' }] },
     { id: 'name', type: 'text', title: 'What should we call you?', answerKey: 'firstName', placeholder: 'Your first name', optional: true },
