@@ -1,0 +1,156 @@
+[
+  {
+    "id": "ads-finch-bathroom-checklist-945085508532759",
+    "url": "https://trycrush.ai/ad-library/ad/945085508532759",
+    "title": "Finch indexed static ad: Monday bathroom checklist",
+    "claim": "The publicly accessible index attributes this static creative to Finch and links a Meta Library ID. The inspected thumbnail uses a phone-notes layout, a bathroom task checklist, and an illustrated bat. Its outcome and mental-health claims are advertiser copy, not verified findings.",
+    "kind": "observation",
+    "retrievedAt": "2026-10-16T03:43:34.000Z",
+    "sourceType": "third-party-ad-index",
+    "fixture": false,
+    "app": "Finch",
+    "quote": "It’s Monday, which means it's time to take care of the bathrooms:",
+    "publishedAt": "2026-05-29",
+    "limitations": [
+      "Attribution and start date are reported by Crush, not independently confirmed in Meta.",
+      "The direct Meta Ad Library page could not be retrieved during research.",
+      "Thumbnail was visually inspected; full placement history and delivery status were not verified.",
+      "Do not reproduce the advertiser's quantitative happiness, diagnostic, or time-bound transformation claims.",
+      "Awareness stage and angle are analyst interpretations. No spend, conversions, CTR, CPA, ROAS or effectiveness is known.",
+      "Local preview is an unmodified source thumbnail for competitor research only; advertiser imagery is excluded from generated creative exports."
+    ],
+    "ad": {
+      "id": "945085508532759",
+      "advertiser": "Finch (as attributed by Crush)",
+      "libraryUrl": "https://www.facebook.com/ads/library/?id=945085508532759",
+      "hook": "It’s Monday, which means it's time to take care of the bathrooms:",
+      "format": "static",
+      "awarenessStage": "problem_aware",
+      "angle": "Inferred: a practical cleaning checklist introduces a gamified self-care companion.",
+      "evidenceIds": [
+        "ads-finch-bathroom-checklist-945085508532759"
+      ],
+      "performance": "unknown",
+      "previewUrl": "https://ads-analytics.nyc3.digitaloceanspaces.com/ads/images/1d412765b1b06da5daaa98d115a01c07-1780251607391.jpg",
+      "verification": "third-party-index",
+      "previewFilename": "finch-945085508532759.jpg",
+      "previewSha256": "9825c46ba43ee24584e975f23cb6860cf633e52bafa45fc095d904c2d3172e6b",
+      "previewSourceUrl": "https://ads-analytics.nyc3.digitaloceanspaces.com/ads/images/1d412765b1b06da5daaa98d115a01c07-1780251607391.jpg",
+      "previewLicenseNote": "Unmodified public indexed ad thumbnail, retained as a labeled research reference only. Copyright remains with its owner; no license for reuse or campaign publication is asserted.",
+      "previewMimeType": "image/jpeg"
+    }
+  },
+  {
+    "id": "ads-finch-weekly-cleaning-1652192745771891",
+    "url": "https://trycrush.ai/ad-library/ad/1652192745771891",
+    "title": "Finch indexed static ad: weekly cleaning list",
+    "claim": "The index attributes this creative to Finch. The visually inspected image uses a blue night-sky setting, illustrated bats, a five-item cleaning list, and an invitation to a decluttering challenge. Outcome promises in the image are unsubstantiated competitor claims.",
+    "kind": "observation",
+    "retrievedAt": "2026-10-16T03:43:34.000Z",
+    "sourceType": "third-party-ad-index",
+    "fixture": false,
+    "app": "Finch",
+    "quote": "5 THINGS YOU SHOULD CLEAN ONCE A WEEK",
+    "publishedAt": "2026-02-20",
+    "limitations": [
+      "Advertiser and start date are third-party index assertions; Meta verification was unavailable.",
+      "The Meta link follows the published index ID; its direct page could not be retrieved during research.",
+      "Image and page body carry different text; the hook is transcribed from the inspected image.",
+      "No performance or current delivery status is established by this record.",
+      "Awareness stage and angle are analyst interpretations, not targeting data.",
+      "Do not reuse unsupported neurochemical, health, or timed-result promises from the source creative.",
+      "Local preview is an unmodified source thumbnail for competitor research only; advertiser imagery is excluded from generated creative exports."
+    ],
+    "ad": {
+      "id": "1652192745771891",
+      "advertiser": "Finch (as attributed by Crush)",
+      "libraryUrl": "https://www.facebook.com/ads/library/?id=1652192745771891",
+      "hook": "5 THINGS YOU SHOULD CLEAN ONCE A WEEK",
+      "format": "static",
+      "awarenessStage": "problem_aware",
+      "angle": "Inferred: educational listicle plus playful companion and challenge invitation.",
+      "evidenceIds": [
+        "ads-finch-weekly-cleaning-1652192745771891"
+      ],
+      "performance": "unknown",
+      "previewUrl": "https://ads-analytics.nyc3.digitaloceanspaces.com/ads/images/d8f2461bd3f3c0d385bbcea91a924144-1773489227533.jpg",
+      "verification": "third-party-index",
+      "previewFilename": "finch-1652192745771891.png",
+      "previewSha256": "4476d313bac18e898d7250246005b5cb20759d1788dcd62c0afc5c2436932adf",
+      "previewSourceUrl": "https://ads-analytics.nyc3.digitaloceanspaces.com/ads/images/d8f2461bd3f3c0d385bbcea91a924144-1773489227533.jpg",
+      "previewLicenseNote": "Unmodified public indexed ad thumbnail, retained as a labeled research reference only. Copyright remains with its owner; no license for reuse or campaign publication is asserted.",
+      "previewMimeType": "image/png"
+    }
+  },
+  {
+    "id": "ads-finch-campaign-director-film",
+    "url": "https://vimeo.com/1202213611",
+    "title": "Finch brand film hosted by director Kirsten Lepore",
+    "claim": "The director's public Vimeo page identifies a Finch self-care film and credits Weirwork, Kirsten Lepore, Mathematic, Prettybird, and Human. This verifies a produced campaign artifact and its credited creators, not Meta delivery or advertising effectiveness.",
+    "kind": "observation",
+    "retrievedAt": "2026-10-16T03:43:34.000Z",
+    "sourceType": "official-campaign",
+    "fixture": false,
+    "app": "Finch",
+    "quote": "Whatever it Takes to Get Through the Day",
+    "publishedAt": null,
+    "limitations": [
+      "Primary creator-hosted campaign page, not a Meta Ad Library record.",
+      "Page title and production credits were inspected; the complete film was not played during this research.",
+      "No claim about specific visual frames is made from the metadata alone.",
+      "Publication date was unavailable in the opened page; relative age was not converted to an exact date.",
+      "Awareness stage and angle are inferred from the campaign title and corroborating launch statement.",
+      "Media rights remain with their owners; do not reproduce film frames in original exported ads."
+    ],
+    "ad": {
+      "id": "finch-brand-film-1202213611",
+      "advertiser": "Finch",
+      "libraryUrl": "https://vimeo.com/1202213611",
+      "hook": "Whatever it Takes to Get Through the Day",
+      "format": "video",
+      "awarenessStage": "unaware",
+      "angle": "Inferred: normalize imperfect everyday self-care before introducing the product.",
+      "evidenceIds": [
+        "ads-finch-campaign-director-film",
+        "ads-finch-founder-campaign-announcement"
+      ],
+      "performance": "unknown",
+      "previewUrl": "https://i.vimeocdn.com/video/2169788048-c7037ce24c80459904a30d23f02c296c45153c36c2ac1bb7d60993aefc726801-d_2400?region=us",
+      "verification": "official-campaign"
+    }
+  },
+  {
+    "id": "ads-finch-founder-campaign-announcement",
+    "url": "https://www.linkedin.com/posts/ninoaquinas_whatever-it-takes-to-get-through-the-day-activity-7462319568099827712-TfEW",
+    "title": "Finch cofounder announces first brand campaign",
+    "claim": "Finch cofounder Thomas Nino Aquinas publicly announces the brand campaign and frames ordinary, imperfect self-care as valid. The post links the campaign film and gives primary author context for its positioning. It does not establish campaign results.",
+    "kind": "observation",
+    "retrievedAt": "2026-10-16T03:43:34.000Z",
+    "sourceType": "official-campaign",
+    "fixture": false,
+    "app": "Finch",
+    "quote": "Self-care is the first thing people drop, and the last thing they think they deserve.",
+    "publishedAt": null,
+    "limitations": [
+      "Primary cofounder statement about positioning; it is not independent evidence of user outcomes.",
+      "The opened page showed only relative age, so an exact publication date is not asserted.",
+      "This is a campaign announcement, not an additional distinct paid ad creative.",
+      "No advertising performance, delivery, audience targeting, or Meta approval can be inferred.",
+      "Awareness-stage classification is an analyst interpretation."
+    ],
+    "ad": {
+      "id": "finch-founder-campaign-announcement",
+      "advertiser": "Finch",
+      "libraryUrl": "https://www.youtube.com/watch?v=Har-tUpSmmU",
+      "hook": "Self-care is the first thing people drop, and the last thing they think they deserve.",
+      "format": "campaign-announcement",
+      "awarenessStage": "problem_aware",
+      "angle": "Inferred: validate imperfect routines and challenge aspirational wellness conventions.",
+      "evidenceIds": [
+        "ads-finch-founder-campaign-announcement"
+      ],
+      "performance": "unknown",
+      "verification": "official-campaign"
+    }
+  }
+]

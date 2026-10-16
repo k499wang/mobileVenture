@@ -1,0 +1,47 @@
+[
+  {
+    "id": "finch-official-small-goals",
+    "url": "https://finchcare.com/about-finch",
+    "title": "Finch official product description: goals and a virtual companion",
+    "claim": "Finch describes linking daily goals and self-care activities to a virtual bird, with reflections, breathing and focus activities. These are publisher-described capabilities, not tested clinical outcomes.",
+    "kind": "observation", "retrievedAt": "2026-10-16T03:42:23.000Z", "sourceType": "official-product-page", "fixture": false,
+    "app": "Finch", "quote": "", "publishedAt": null,
+    "limitations": ["Publisher description, not independent usability or efficacy testing.", "No download, revenue, conversion or retention estimates were used."]
+  },
+  {
+    "id": "finch-official-free-plus",
+    "url": "https://help.finchcare.com/hc/en-us/articles/37780200600589-Benefits-of-Finch-Plus",
+    "title": "Finch help center: core features and optional Plus benefits",
+    "claim": "Finch says core self-care features remain free, while Plus adds customization and expanded options. This supports separating basic progress from optional paid features.",
+    "kind": "observation", "retrievedAt": "2026-10-16T03:42:23.000Z", "sourceType": "official-help-center", "fixture": false,
+    "app": "Finch", "quote": "", "publishedAt": null,
+    "limitations": ["Publisher statement observed at retrieval; no current subscription price or purchase flow was tested."]
+  },
+  {
+    "id": "finch-official-goal-controls",
+    "url": "https://help.finchcare.com/hc/en-us/articles/37779940291213-Creating-and-Completing-Goals",
+    "title": "Finch help center: adding and managing goals",
+    "claim": "The help article documents adding personal goals, optional self-care areas, and saving goals to the home screen or settings. It supplies an inspectable task-flow reference.",
+    "kind": "observation", "retrievedAt": "2026-10-16T03:42:23.000Z", "sourceType": "official-help-center", "fixture": false,
+    "app": "Finch", "quote": "", "publishedAt": null,
+    "limitations": ["Documentation was read; native interaction and accessibility were not tested."]
+  },
+  {
+    "id": "chillio-official-store-capabilities",
+    "url": "https://apps.apple.com/us/app/chillio-life-planner/id6748603301",
+    "title": "Chillio official US App Store listing: planning and rewards",
+    "claim": "The developer listing describes recurring habits, progress tracking and XP/coin rewards. Store descriptions are marketing statements; review complaints may describe older versions.",
+    "kind": "observation", "retrievedAt": "2026-10-16T03:42:23.000Z", "sourceType": "official-app-store-listing", "fixture": false,
+    "app": "Chillio", "quote": "", "publishedAt": null,
+    "limitations": ["Identified by Apple app ID6748603301, not the unrelated Chillio Cleaning/TV apps.", "No current feature, price or subscription transaction was independently tested."]
+  },
+  {
+    "id": "screensdesign-finch-public-onboarding",
+    "url": "https://screensdesign.com/articles/finch-app-onboarding-design/",
+    "title": "ScreensDesign public Finch onboarding references",
+    "claim": "The public article presents Finch welcome, egg selection, pet naming and check-in examples, and discusses clear action hierarchy and return paths. Its design commentary does not establish conversion effects.",
+    "kind": "observation", "retrievedAt": "2026-10-16T03:42:23.000Z", "sourceType": "screensdesign-public-capture", "fixture": false,
+    "app": "Finch", "quote": "", "publishedAt": null,
+    "limitations": ["Public article only; no authenticated ScreensDesign MCP session or gated screen archive was accessed.", "No revenue estimates or retention claims from the site were adopted.", "Patterns inspire original work; competitor screenshots are not reused in generated ads."]
+  }
+]
