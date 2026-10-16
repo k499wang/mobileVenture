@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "screensdesign": {
+      "url": "https://api.screensdesign.com/v1/mcp",
+      "authType": "scoped-key",
+      "tokenEnv": "SCREENSDESIGN_MCP_TOKEN",
+      "allowedTools": [],
+      "roles": ["designer"]
+    },
+    "appgazers": {
+      "url": "https://appgazers.com/mcp",
+      "authType": "oauth",
+      "tokenEnv": "APPGAZERS_MCP_ACCESS_TOKEN",
+      "scopes": ["mcp:read"],
+      "allowedTools": [],
+      "roles": ["researcher", "competitor", "ads_research"]
+    }
+  }
+}
