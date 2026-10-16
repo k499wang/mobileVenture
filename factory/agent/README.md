@@ -1,14 +1,16 @@
 # Venture Studio
 
-A local, eight-role research-to-prototype agent system around the consumer app
+A local, thirteen-role research-to-prototype agent system around the consumer app
 factory. Submit a market brief, inspect evidence and skeptical review, approve a
 versioned product specification, and generate an independent Expo application.
 
 ## Start here
 
-From the repository root, with foundation dependencies installed:
+From the repository root, with foundation dependencies installed, install the
+isolated server-only PNG renderer dependencies once:
 
 ```sh
+npm run agent:setup
 npm run agent:studio
 ```
 
@@ -18,11 +20,42 @@ sample investigation. Select **Review product specification**, inspect it, then
 real TypeScript error into generated source. Verification catches it and the
 builder rewrites the source before verification runs again.
 
-Explore **Evidence**, **Specification**, **Trace**, and **Code**. Evidence IDs on
-features are clickable. Export downloads the complete run as JSON.
+Explore **Evidence**, **Personas**, **Design**, **Ad research**, **Creatives**,
+**Connections**, **Specification**, **Trace**, and **Code**. Evidence IDs on
+features are clickable. Export downloads the complete run as JSON. Creatives
+offers PNG/SVG previews, copy CSV, a research dossier and a complete ZIP pack.
 
 The dashboard is separate local tooling. It does not change the foundation's
 existing mobile feature or require native rebuilding to use the console.
+
+### Populated Finch / Chillio samples
+
+```sh
+npm run agent:samples
+```
+
+This creates three completed, source-backed sample runs: **Little Steps**,
+**Focus Pocket**, and **Soft Reset**. The command explicitly approves the sample
+specifications, then runs actual generation, PNG/SVG export, checks and ZIP
+packaging. It reuses completed samples with the same source version;
+`-- --fresh` requests new runs.
+
+Dashboard sample cards instead start at the usual human approval checkpoint.
+Samples use `curated` mode: real previously inspected public source snapshots
+with hypothetical persona/product/creative interpretations. No live search or
+model execution is implied, and no model tokens are consumed.
+
+Each sample includes 27 evidence records across 21 source URLs: Reddit discussions,
+App Store review themes, official Finch/Chillio information, public ScreensDesign
+references and actual Finch ad/campaign references. Excerpts, locators, dates and
+source limits are visible in Evidence. Ad research shows two original indexed
+static references separately from the generated drafts. See the
+[source methodology and verification limits](research/README.md).
+
+Each completed sample produces ten concepts, 30 PNGs and 30 editable SVGs across
+two personas and five awareness stages. The complete launch ZIP includes generated
+assets, copy CSV, metadata, the research dossier and structural QA. Original
+competitor images are excluded from generated ad packs.
 
 ### Terminal demo
 
@@ -74,6 +107,9 @@ with your own credentials; offline validation does not establish live quality.
 | Repair | Real failure injection; deterministic corrective writes | Model interprets actual verification results |
 | Run state, budgets, trace, pause/resume | Real | Real |
 | Native behavior or market validation | Not verified | Not automatically verified |
+| Personas, awareness and ad messaging | Explicitly synthetic hypotheses | Evidence-linked model analysis; still hypotheses |
+| PNG/SVG static exports and ZIP | Actual original vector layouts rasterized locally | Actual exports from generated copy |
+| ScreensDesign / AppGazers connections | Not used or claimed | Explicitly allowlisted remote MCP, when authorized |
 
 Fixture mode always generates the same illustrative **Shift Flow** routine
 tracker. Changing its brief demonstrates context propagation, not open-ended
@@ -86,18 +122,27 @@ labeled; they must not be presented as completed market research.
 flowchart TD
   Brief[Market brief] --> Research[Market researcher]
   Brief --> Competition[Competitive intelligence]
+  Brief --> Design[Design researcher / ScreensDesign]
+  Brief --> Ads[Ad intelligence / AppGazers or public Meta evidence]
   Research --> Analyst[Opportunity analyst]
   Competition --> Analyst
-  Analyst --> Critic[Skeptical reviewer]
+  Design --> Analyst
+  Ads --> Analyst
+  Analyst --> Personas[Audience strategist / five awareness stages]
+  Personas --> Critic[Skeptical reviewer]
   Critic -->|One bounded follow-up round| Research
   Critic -->|One bounded follow-up round| Competition
   Critic -->|Accept| Planner[Product architect]
   Planner --> Approval[Human approval of specification hash]
   Approval --> Builder[Application engineer]
   Approval --> Experiments[Experiment designer]
+  Approval --> Creative[Creative strategist / persona x awareness matrix]
+  Creative --> Render[Original PNG / SVG / copy / dossier / ZIP]
+  Render --> CreativeQA[Creative reviewer]
   Builder --> Verifier[Verification engineer]
   Verifier -->|At most two repairs| Builder
   Verifier -->|Pass| Result[Source, checks, trace and independent app]
+  CreativeQA --> Result
 ```
 
 - `orchestrator.mjs`: deterministic state machine, role-scoped dependencies,
@@ -110,6 +155,10 @@ flowchart TD
 - `tools.mjs`: restricted source reads/writes, generation recovery, fixed checks.
 - `store.mjs`: serialized atomic checkpoints and per-run process locks.
 - `server.mjs`, `public/`: loopback dashboard, source browser and trace export.
+- `growth.mjs`: persona, design, ad research, creative and review contracts.
+- `mcp/`: remote MCP client, operator discovery and a local stdio server.
+- `creatives/render.mjs`, `launch-pack.mjs`: PNG/SVG rendering, structural checks,
+  copy export, research dossier and portable ZIP packaging.
 
 Research roles run concurrently. Each subsequent role receives only its declared
 dependency artifacts, the brief, and relevant verification feedback. Shared
@@ -122,8 +171,8 @@ evidence gaps stop execution. Verification can request two repairs; unresolved
 failures remain visible. An experiment artifact is a proposal, never a claim of
 completed product experiments.
 
-The shared budget permits at most 40 model requests, 100 tool reservations and
-6,000 output tokens per request. Hosted research search reserves a tool slot
+The shared budget permits at most 64 model requests, 160 tool reservations and
+9,000 output tokens per request. Hosted research search reserves a tool slot
 conservatively even when the model does not use it; the dashboard counts
 reservations rather than claiming exact billable search calls. Token usage is
 reported from API responses. No dollar-cost estimates are invented.

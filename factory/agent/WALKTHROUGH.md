@@ -1,6 +1,6 @@
 # Six-minute interview walkthrough
 
-Prepare `npm run agent:studio` and a native simulator preview of a completed
+Prepare `npm run agent:samples`, `npm run agent:studio`, and a native simulator preview of a completed
 generated app. Keep source open at the functions below. Use a live run only
 after you have tested credentials, model access and the full task beforehand.
 
@@ -9,8 +9,9 @@ after you have tested credentials, model access and the full task beforehand.
 “I built a multi-agent research-to-prototype system around a maintained iOS app
 foundation. It separates evidence gathering, criticism, product decisions,
 implementation and verification. The supervisor owns permissions and completion
-conditions. This recording uses labeled research fixtures for repeatability;
-generation, checks and state persistence execute for real.”
+conditions. This recording uses an inspectable snapshot of real Reddit, App Store,
+vendor and public ad sources. Persona and product interpretations remain
+hypotheses. Generation, export, checks and state persistence execute for real.”
 
 ## 0:40–1:40 — Launch and inspect the decision
 
@@ -19,6 +20,13 @@ tasks, the analyst's evidence references, and the critic requesting follow-up.
 Open Specification and click an evidence ID to demonstrate provenance. Explain
 that the numerical ranking is a heuristic, not a measured market probability.
 Approve the exact specification and show that building starts only afterward.
+
+For the sourced samples, show the Reddit/App Store filters, a review locator and
+an original Finch ad reference. Explain that the ad is indexed by a third party
+and direct Meta delivery verification is unavailable. In Personas, connect an
+evidence-backed behavior hypothesis to its five awareness stages. In Creatives,
+filter a persona and stage, then download an original draft and the launch ZIP.
+The separate fixture demo remains available to demonstrate an injected repair.
 
 ## 1:40–2:40 — Show actual execution and the prototype
 

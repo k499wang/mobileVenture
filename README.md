@@ -97,11 +97,18 @@ See [event ownership](docs/measurement.md) and [launch checklist](docs/launch-ch
 ## Multi-agent research and prototyping
 
 Run `npm run agent:studio` and open **http://127.0.0.1:4317** to use the local
-Venture Studio console. Eight roles coordinate market research, critical review,
-product specification, app generation, verification and experiment planning.
+Venture Studio console. Thirteen roles coordinate market/design/ad research,
+persona and awareness strategy, product planning, app generation, verification,
+and static-ad creative packs. Run `npm run agent:setup` once for server-only PNG
+export dependencies. ScreensDesign and AppGazers MCP adapters are available;
+authenticated access requires your own authorized connections.
 The demo needs no API key and labels its research fixtures; generated source,
 checks, approval gates, persistence and failure recovery execute for real.
 
 Run `npm run agent:demo` for the unattended repair demonstration, or
 `npm run agent:test` for the agent tests. See the [setup and architecture](factory/agent/README.md)
 and [interview walkthrough](factory/agent/WALKTHROUGH.md) for live mode and recording instructions.
+
+Run `npm run agent:samples` to populate three completed Finch/Chillio-inspired
+investigations with real public review/source snapshots, persona hypotheses,
+original competitor-ad references, and downloadable original static-ad packs.
