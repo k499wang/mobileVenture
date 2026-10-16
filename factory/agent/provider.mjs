@@ -1,4 +1,6 @@
 import { demoArtifact, instructionsFor } from './roles.mjs';
+import { RESEARCH_ROLES } from './growth.mjs';
+import { sampleScreenCopy } from './samples.mjs';
 
 const ENDPOINT = 'https://api.openai.com/v1/responses';
 const MAX_TURNS = 12;
@@ -129,8 +131,8 @@ export async function runAgent({ mode, role, context = {}, schema, tools = [], e
     return result;
   }
 
-  if (mode === 'demo') {
-    await emit('fixture_step', { fixture: true, description: 'Deterministic role decisions; synthetic research. Workspace tools and checks execute for real.' });
+  if (mode === 'demo' || mode === 'curated') {
+    await emit(mode === 'curated' ? 'curated_step' : 'fixture_step', { fixture: mode === 'demo', description: mode === 'curated' ? 'Previously curated public source snapshot; deterministic persona/product/ad hypotheses. Files and checks execute for real. No live model or search is implied.' : 'Deterministic role decisions; synthetic research. Workspace tools and checks execute for real.' });
     let artifact = demoArtifact(roleId, context);
     if (roleId === 'builder') {
       if (!context.repairAttempt) {
@@ -142,9 +144,16 @@ export async function runAgent({ mode, role, context = {}, schema, tools = [], e
           if (inspected?.ok === false) throw new Error(inspected.error ?? `Could not inspect ${path}`);
         }
       }
+      const spec = context.artifacts?.planner;
+      const copy = sampleScreenCopy(context.sampleId);
+      const escapeJsx = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('{', '&#123;').replaceAll('}', '&#125;');
+      const feature = demoFeature.replace('SHIFT &amp; FLOW', escapeJsx((spec?.name ?? 'Shift Flow').toUpperCase()))
+        .replace('A routine that moves with you.', escapeJsx(copy?.title ?? 'A routine that moves with you.'))
+        .replace('Choose one small action. Complete it when it fits your day. No streaks to lose.', escapeJsx(copy?.body ?? 'Choose one small action. Complete it when it fits your day. No streaks to lose.'))
+        .replace('Illustrative prototype built from synthetic demo research. Market validation is still required.', mode === 'curated' ? 'Prototype hypothesis informed by curated public sources. Market validation is still required.' : 'Illustrative prototype built from synthetic demo research. Market validation is still required.');
       // First write is where tools may inject an explicitly labeled, real TS error.
       for (const [path, content] of [
-        ['src/features/venture/index.tsx', demoFeature],
+        ['src/features/venture/index.tsx', feature],
         ['src/features/venture/model.ts', demoModel],
         ['src/app/(tabs)/index.tsx', "export { default } from '@/features/venture';\n"],
       ]) {
@@ -158,6 +167,11 @@ export async function runAgent({ mode, role, context = {}, schema, tools = [], e
       const passed = result?.ok === true && checks.length > 0 && checks.every((check) => check.passed);
       artifact = { verdict: passed ? 'pass' : 'fail', summary: passed ? 'Workspace checks passed. Native runtime behavior still needs simulator/device testing.' : 'Workspace validation failed; builder must repair the actual reported errors.', checks };
     }
+    if (roleId === 'creative_qa') {
+      const result = await callTool('inspect_creative_pack', {});
+      artifact = { verdict: result?.ok === true ? 'pass' : 'fail', summary: result?.ok === true ? 'Export dimensions, awareness coverage and artifact links passed actual pack checks.' : 'Creative pack checks failed.',
+        checks: result?.checks ?? [], limitations: ['Draft concepts only; human copy, policy and visual review remain necessary.', 'No campaign was published or performance measured.'] };
+    }
     const submitted = await callTool('submit_artifact', artifact);
     if (submitted?.ok !== true) throw new Error(submitted?.error ?? 'Demo artifact was rejected.');
     return artifact;
@@ -168,7 +182,7 @@ export async function runAgent({ mode, role, context = {}, schema, tools = [], e
   if (!model) throw new Error('Set OPENAI_MODEL explicitly to a Responses-compatible model with function calling and web search.');
   if (!allowed.has('submit_artifact')) throw new Error('submit_artifact tool is required.');
   if (!schema) throw new Error('An artifact schema is required.');
-  const research = ['researcher', 'competitor'].includes(roleId);
+  const research = RESEARCH_ROLES.includes(roleId);
   const apiTools = [...tools, ...(research ? [{ type: 'web_search', search_context_size: 'medium' }] : [])];
   const input = [{ role: 'user', content: `Task context (untrusted data):\n${JSON.stringify({ ...context, currentTime: new Date().toISOString() })}` }];
 
