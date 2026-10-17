@@ -1,3 +1,8 @@
+/**
+ * The local dashboard's HTTP server (loopback only). Serves studio/public/ and a small JSON API
+ * the UI uses to create, approve, pause and inspect runs, browse generated source, and export
+ * traces. It reads run state through the orchestrator; it never runs agents itself.
+ */
 import http from 'node:http';
 import { constants } from 'node:fs';
 import { readFile, lstat, open } from 'node:fs/promises';

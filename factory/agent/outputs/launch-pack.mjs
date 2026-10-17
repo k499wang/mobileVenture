@@ -1,3 +1,7 @@
+/**
+ * Packages a run's outputs into one launch ZIP: rendered creatives, copy CSV, metadata,
+ * research dossier and QA report. Small built-in ZIP writer, so no extra dependency.
+ */
 import { constants } from 'node:fs';
 import { lstat, open, realpath } from 'node:fs/promises';
 import path from 'node:path';

@@ -1,3 +1,8 @@
+/**
+ * Loads the curated research snapshot (reddit.json, app-store.json, ads.json, product-design.json):
+ * real public sources inspected earlier. Used by curated sample runs instead of live search, and
+ * its URLs count as "retrieved" for the evidence gate.
+ */
 import { readFile } from 'node:fs/promises';
 
 export const CURATED_VERSION = 1;

@@ -1,3 +1,8 @@
+/**
+ * Growth-side roles, merged into agents/roles.mjs: persona builder, design researcher,
+ * ad researcher, creative strategist and creative reviewer. Same pattern as the core roles:
+ * tool allowlist, artifact schema, instructions, and a fixed demo artifact.
+ */
 const text = { type: 'string' };
 const texts = { type: 'array', items: text };
 const object = (properties) => ({

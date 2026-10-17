@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Local read-only MCP server (stdio) for inspecting one finished run from another MCP host:
+ * list/get artifacts, list evidence, summarize the trace. No file, shell or write access.
+ */
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

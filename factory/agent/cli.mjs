@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+/**
+ * Terminal entry point.
+ *   serve     start the local dashboard (studio/server.mjs)
+ *   samples   build the three curated sample runs
+ *   run       start a run (demo or live), optionally auto-approving and injecting a demo failure
+ *   resume    continue a run, or approve it with --approve <spec hash>
+ *   inspect   print a run's status
+ */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { VentureStudio } from './runtime/orchestrator.mjs';

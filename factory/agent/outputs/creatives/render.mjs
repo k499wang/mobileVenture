@@ -1,3 +1,8 @@
+/**
+ * Renders ad concepts from the creative agent's artifact into PNG (via sharp) and editable SVG,
+ * in three sizes, then validates the pack: dimensions, one concept per persona × awareness stage,
+ * and links back to the artifact. Structural checks only; not ad performance or policy approval.
+ */
 import { constants } from 'node:fs';
 import { mkdir, realpath, lstat, open, readFile } from 'node:fs/promises';
 import path from 'node:path';

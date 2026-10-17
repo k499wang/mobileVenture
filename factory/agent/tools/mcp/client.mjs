@@ -1,3 +1,10 @@
+/**
+ * Remote MCP client for research integrations (configured today: ScreensDesign and AppGazers).
+ * Servers and their tool allowlists come from integrations.json. Tools are discovered at
+ * runtime, only explicitly allowlisted read-only tools are exposed, each only to its assigned
+ * roles, and URLs in results are recorded as retrieved sources for the evidence gate.
+ * Credentials come from environment variables and are redacted from traces.
+ */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
