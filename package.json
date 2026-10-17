@@ -73,7 +73,7 @@
     "factory:create": "node factory/create-app.mjs",
     "agent:studio": "node factory/agent/cli.mjs serve",
     "agent:demo": "node factory/agent/cli.mjs run --mode demo --auto-approve --inject-failure",
-    "agent:test": "node --test factory/agent/*.test.mjs factory/agent/mcp/*.test.mjs factory/agent/creatives/*.test.mjs factory/agent/research/*.test.mjs",
+    "agent:test": "node --test factory/agent/*.test.mjs factory/agent/runtime/*.test.mjs factory/agent/mcp/*.test.mjs factory/agent/creatives/*.test.mjs factory/agent/research/*.test.mjs",
     "agent:setup": "npm ci --prefix factory/agent",
     "agent:mcp": "node factory/agent/mcp/server.mjs",
     "agent:samples": "node factory/agent/cli.mjs samples",

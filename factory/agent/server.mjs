@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import { readFile, lstat, open } from 'node:fs/promises';
 import path from 'node:path';
 import { ROLES } from './roles.mjs';
-import { isRunId } from './store.mjs';
+import { isRunId } from './runtime/store.mjs';
 import { SAMPLES } from './samples.mjs';
 import { loadCuratedResearch } from './research/index.mjs';
 import { createHash } from 'node:crypto';

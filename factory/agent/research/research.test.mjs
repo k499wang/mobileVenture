@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { loadCuratedResearch } from './index.mjs';
 import { SAMPLES } from '../samples.mjs';
 import { artifactSchemas, demoArtifact } from '../roles.mjs';
-import { validate, validateReferences } from '../validation.mjs';
+import { validate, validateReferences } from '../runtime/validation.mjs';
 
 test('curated snapshots contain real-source reviews, attribution limits and intact original ad references', async () => {
   const curated = await loadCuratedResearch();

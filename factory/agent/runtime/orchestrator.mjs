@@ -1,16 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { RunStore } from './store.mjs';
-import { ROLES, artifactSchemas } from './roles.mjs';
-import { runAgent } from './provider.mjs';
-import { createWorkspaceTools } from './tools.mjs';
+import { ROLES, artifactSchemas } from '../roles.mjs';
+import { runAgent } from '../provider.mjs';
+import { createWorkspaceTools } from '../tools.mjs';
 import { digest, validate, validateReferences } from './validation.mjs';
-import { RESEARCH_ROLES } from './growth.mjs';
-import { createIntegrationRegistry } from './mcp/client.mjs';
-import { renderCreativePack, validateCreativePack } from './creatives/render.mjs';
-import { createLaunchArchive } from './launch-pack.mjs';
-import { SAMPLES } from './samples.mjs';
-import { loadCuratedResearch, CURATED_VERSION } from './research/index.mjs';
+import { RESEARCH_ROLES } from '../growth.mjs';
+import { createIntegrationRegistry } from '../mcp/client.mjs';
+import { renderCreativePack, validateCreativePack } from '../creatives/render.mjs';
+import { createLaunchArchive } from '../launch-pack.mjs';
+import { SAMPLES } from '../samples.mjs';
+import { loadCuratedResearch, CURATED_VERSION } from '../research/index.mjs';
 
 const dependencies = {
   researcher: ['critic'], competitor: ['critic'], designer: ['critic'], ads_research: ['critic'],
@@ -29,7 +29,7 @@ export class VentureStudio {
   constructor({ foundationDir, runsDir, provider = runAgent, workspaceFactory = createWorkspaceTools,
     creativeRenderer = renderCreativePack, creativeValidator = validateCreativePack, launchArchiver = createLaunchArchive, integrations,
     model = process.env.OPENAI_MODEL, apiKey = process.env.OPENAI_API_KEY } = {}) {
-    this.foundationDir = path.resolve(foundationDir ?? path.join(import.meta.dirname, '../..'));
+    this.foundationDir = path.resolve(foundationDir ?? path.join(import.meta.dirname, '../../..'));
     this.store = new RunStore(runsDir ?? path.join(this.foundationDir, '.agent-runs'));
     this.provider = provider;
     this.workspaceFactory = workspaceFactory;

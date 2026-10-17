@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { VentureStudio } from './orchestrator.mjs';
+import { VentureStudio } from './runtime/orchestrator.mjs';
 import { createStudioServer } from './server.mjs';
 import { SAMPLES } from './samples.mjs';
 import { CURATED_VERSION } from './research/index.mjs';

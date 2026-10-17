@@ -2,7 +2,7 @@
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { RunStore } from '../store.mjs';
+import { RunStore } from '../runtime/store.mjs';
 
 const definitions = [
   { name: 'list_artifacts', description: 'List agent artifact names for the selected Venture Studio run.' },
