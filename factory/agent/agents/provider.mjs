@@ -1,3 +1,20 @@
+/**
+ * The agent loop: how one agent actually runs.
+ *
+ * Live mode is a standard tool-calling loop against the OpenAI Responses API:
+ *
+ *   send instructions + context + allowed tools → model replies with tool calls
+ *     → run each call through the orchestrator's `execute` → send the results back → repeat
+ *
+ * The loop ends only when `submit_artifact` is accepted. Plain text never finishes a task, and
+ * after MAX_TURNS without an accepted artifact the agent fails instead of looping forever.
+ *
+ * Demo and curated modes replace only the model's decisions with fixed artifacts. The tool
+ * calls they make (generate the app, write files, run checks) are real.
+ *
+ * Walkthrough order: `runAgent` (live branch), then `collectSources` (how retrieved URLs are
+ * recorded for the evidence gate), then `reserve` (the shared budget).
+ */
 import { demoArtifact, instructionsFor } from './roles.mjs';
 import { RESEARCH_ROLES } from './growth.mjs';
 import { sampleScreenCopy } from '../curated/samples.mjs';
@@ -6,6 +23,7 @@ const ENDPOINT = 'https://api.openai.com/v1/responses';
 const MAX_TURNS = 12;
 const REQUEST_TIMEOUT_MS = 90_000;
 
+// Take one request or tool-call slot from the run's shared budget, or throw when it's used up.
 function reserve(budget, kind) {
   const field = kind === 'request' ? 'requests' : 'toolCalls';
   const limit = kind === 'request' ? 'maxRequests' : 'maxToolCalls';
@@ -15,6 +33,8 @@ function reserve(budget, kind) {
   budget[field] += 1;
 }
 
+// Pull every URL the search tool actually returned (and every URL the model cited) out of a
+// response. The orchestrator stores these; evidence citing any other URL is rejected.
 function collectSources(output) {
   const found = new Map();
   const add = (source) => {
@@ -50,6 +70,8 @@ function safeToolArgs(value) {
   return args;
 }
 
+// Fixed source the demo builder writes. It implements the contract in the demo planner's
+// acceptance tests (agents/roles.mjs), so those tests pass for real.
 const demoModel = `export type RoutineAction = { id: string; title: string; completed: boolean };
 export function decodeActions(value: unknown): RoutineAction[] {
   if (!Array.isArray(value)) return [];
@@ -129,7 +151,7 @@ export default function VentureScreen() {
 }
 `;
 
-/** Real tool loop. In demo mode only decisions/research are fixtures; filesystem checks are real. */
+/** Run one agent until it submits an accepted artifact. Returns that artifact. */
 export async function runAgent({
   mode,
   role,
@@ -147,6 +169,9 @@ export async function runAgent({
   if (!budget) throw new Error('A shared run budget is required.');
   const emit = (type, data = {}) => onEvent(type, { role: roleId, ...data });
   const allowed = new Set(tools.filter((tool) => tool.type === 'function').map((tool) => tool.name));
+
+  // Every tool call: charge the budget, check the role may use it, run it, trace it.
+  // Errors become `{ ok: false, error }` results the model can read and correct.
   async function callTool(name, args) {
     reserve(budget, 'tool');
     await emit('tool_call', { name, args });
@@ -161,6 +186,7 @@ export async function runAgent({
     return result;
   }
 
+  // ── Demo / curated: fixed decisions, real tools ───────────────────────────────────────────
   if (mode === 'demo' || mode === 'curated') {
     await emit(mode === 'curated' ? 'curated_step' : 'fixture_step', {
       fixture: mode === 'demo',
@@ -259,6 +285,7 @@ export async function runAgent({
     return artifact;
   }
 
+  // ── Live: the real model loop ────────────────────────────────────────────────────────────
   if (mode !== 'live') throw new Error(`Unknown agent mode: ${mode}`);
   if (!apiKey) throw new Error('Set OPENAI_API_KEY to run live agents.');
   if (!model)
@@ -267,6 +294,7 @@ export async function runAgent({
     );
   if (!allowed.has('submit_artifact')) throw new Error('submit_artifact tool is required.');
   if (!schema) throw new Error('An artifact schema is required.');
+  // Research roles also get the hosted web-search tool.
   const research = RESEARCH_ROLES.includes(roleId);
   const apiTools = [...tools, ...(research ? [{ type: 'web_search', search_context_size: 'medium' }] : [])];
   const input = [
@@ -276,6 +304,7 @@ export async function runAgent({
     },
   ];
 
+  // The context is labeled as untrusted data: it can include text scraped from the web.
   for (let turn = 0; turn < MAX_TURNS; turn += 1) {
     reserve(budget, 'request');
     // Reserve conservatively for hosted search, which executes within the HTTP request.
@@ -323,6 +352,7 @@ export async function runAgent({
     budget.inputTokens += usage.inputTokens;
     budget.outputTokens += usage.outputTokens;
     await emit('model_usage', usage);
+    // Record what was actually retrieved this turn (the orchestrator adds it to the run's sources).
     const sources = collectSources(data.output);
     const searches = data.output.filter((item) => item.type === 'web_search_call');
     if (sources.length || searches.length)
@@ -339,6 +369,7 @@ export async function runAgent({
     // Responses requires the complete output (including reasoning items) to continue
     // function calls. Keep it in memory only; it is never persisted or traced.
     input.push(...data.output);
+    // Run each tool call and feed the result back. An accepted submit_artifact ends the task.
     const calls = data.output.filter((item) => item.type === 'function_call');
     for (const call of calls) {
       let args;
