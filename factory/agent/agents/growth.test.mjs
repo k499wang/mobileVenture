@@ -20,9 +20,15 @@ test('all thirteen roles have validated demo contracts, evidence and a complete 
     validateReferences(role, artifact, all, { mode: 'demo' });
   }
   assert.equal(all.creative.creatives.length, 10);
-  for (const persona of all.persona.personas) for (const stage of AWARENESS_STAGES) {
-    assert.equal(all.creative.creatives.filter(item => item.personaId === persona.id && item.awarenessStage === stage).length, 1);
-  }
+  for (const persona of all.persona.personas)
+    for (const stage of AWARENESS_STAGES) {
+      assert.equal(
+        all.creative.creatives.filter(
+          (item) => item.personaId === persona.id && item.awarenessStage === stage,
+        ).length,
+        1,
+      );
+    }
 });
 
 test('persona stages cannot be duplicated or omitted and creative cells require real references', () => {
@@ -35,7 +41,10 @@ test('persona stages cannot be duplicated or omitted and creative cells require 
   assert.throws(() => validateReferences('creative', creative, all, { mode: 'demo' }), /Unknown design/);
   creative.creatives[0].designReferenceIds = [];
   creative.creatives[0].personaId = 'invented-persona';
-  assert.throws(() => validateReferences('creative', creative, all, { mode: 'demo' }), /Unknown creative persona/);
+  assert.throws(
+    () => validateReferences('creative', creative, all, { mode: 'demo' }),
+    /Unknown creative persona/,
+  );
 });
 
 test('ad research cannot manufacture performance metrics and design references require retrieved evidence', () => {
@@ -55,7 +64,13 @@ test('creative copy respects export bounds before reaching the renderer', () => 
 });
 
 test('awareness stages stay in funnel order', () => {
-  assert.deepEqual(AWARENESS_STAGES, ['unaware', 'problem_aware', 'solution_aware', 'product_aware', 'most_aware']);
+  assert.deepEqual(AWARENESS_STAGES, [
+    'unaware',
+    'problem_aware',
+    'solution_aware',
+    'product_aware',
+    'most_aware',
+  ]);
 });
 
 test('growth demo artifacts are undefined for roles they do not own', () => {
@@ -63,7 +78,7 @@ test('growth demo artifacts are undefined for roles they do not own', () => {
 });
 
 test('demo creative IDs are unique and safe for file names', () => {
-  const ids = growthDemoArtifact('creative').creatives.map(item => item.id);
+  const ids = growthDemoArtifact('creative').creatives.map((item) => item.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const id of ids) assert.match(id, /^[a-z][a-z0-9-]{1,79}$/);
 });
