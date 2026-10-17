@@ -145,20 +145,31 @@ flowchart TD
   CreativeQA --> Result
 ```
 
-- `orchestrator.mjs`: deterministic state machine, role-scoped dependencies,
-  parallel tasks, follow-up/repair limits, approval and artifact handoffs.
-- `roles.mjs`: role instructions and strict structured artifact schemas.
-- `provider.mjs`: bounded Responses tool loop and explicit fixture adapter.
-- `validation.mjs`: runtime schema checks, evidence references and source URL
-  provenance. A searched URL supports provenance, not proof that every claim is
-  correct; skeptical review and human inspection remain necessary.
-- `tools.mjs`: restricted source reads/writes, generation recovery, fixed checks.
-- `store.mjs`: serialized atomic checkpoints and per-run process locks.
-- `server.mjs`, `public/`: loopback dashboard, source browser and trace export.
-- `growth.mjs`: persona, design, ad research, creative and review contracts.
-- `mcp/`: remote MCP client, operator discovery and a local stdio server.
-- `creatives/render.mjs`, `launch-pack.mjs`: PNG/SVG rendering, structural checks,
-  copy export, research dossier and portable ZIP packaging.
+Folders follow the walkthrough order: who decides, who works, what they can
+touch, what comes out.
+
+- `runtime/` — the supervisor and the hard engineering.
+  - `orchestrator.mjs`: deterministic state machine, role-scoped dependencies,
+    parallel tasks, follow-up/repair limits, approval and artifact handoffs.
+  - `store.mjs`: serialized atomic checkpoints and per-run process locks.
+  - `validation.mjs`: runtime schema checks, specification hashes, evidence
+    references and source URL provenance. A searched URL supports provenance,
+    not proof that every claim is correct; skeptical review and human inspection
+    remain necessary.
+- `agents/` — the roles and the model loop.
+  - `roles.mjs`: role instructions and strict structured artifact schemas.
+  - `growth.mjs`: persona, design, ad research, creative and review contracts.
+  - `provider.mjs`: bounded Responses tool loop and explicit fixture adapter.
+- `tools/` — everything an agent can touch.
+  - `workspace.mjs`: restricted source reads/writes, journaled app generation,
+    fixed checks.
+  - `mcp/`: remote MCP client, operator discovery and a local stdio server.
+- `outputs/` — `creatives/render.mjs`, `launch-pack.mjs`: PNG/SVG rendering,
+  structural checks, copy export, research dossier and portable ZIP packaging.
+- `curated/` — `research/` source snapshots and `samples.mjs` sample runs.
+- `studio/` — `server.mjs`, `public/`: loopback dashboard, source browser and
+  trace export.
+- `cli.mjs` — terminal entry point.
 
 Research roles run concurrently. Each subsequent role receives only its declared
 dependency artifacts, the brief, and relevant verification feedback. Shared
