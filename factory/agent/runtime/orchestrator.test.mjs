@@ -4,7 +4,7 @@ import { mkdtemp } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { VentureStudio } from './orchestrator.mjs';
-import { workspaceToolDefinitions } from '../tools.mjs';
+import { workspaceToolDefinitions } from '../tools/workspace.mjs';
 import { validate, validateReferences, digest } from './validation.mjs';
 import { artifactSchemas, demoArtifact } from '../agents/roles.mjs';
 import { runAgent } from '../agents/provider.mjs';

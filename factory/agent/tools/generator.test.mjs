@@ -9,7 +9,7 @@ import path from 'node:path';
 test('factory can generate inside ignored runs without copying secrets, tooling or corrupting binary assets', async () => {
   const foundation = await mkdtemp(path.join(os.tmpdir(), 'venture-generator-'));
   await mkdir(path.join(foundation, 'factory'));
-  await copyFile(path.join(import.meta.dirname, '../create-app.mjs'), path.join(foundation, 'factory/create-app.mjs'));
+  await copyFile(path.join(import.meta.dirname, '../../create-app.mjs'), path.join(foundation, 'factory/create-app.mjs'));
   await writeFile(path.join(foundation, 'app.json'), JSON.stringify({ expo: { name: 'Starter', slug: 'starter', ios: {}, plugins: [] } }));
   await writeFile(path.join(foundation, 'package.json'), JSON.stringify({ name: 'starter', scripts: { ios: 'expo run:ios', 'agent:studio': 'node factory/agent/cli.mjs', 'factory:create': 'node factory/create-app.mjs' } }));
   const binary = Buffer.from([0, 255, 254, 128, 65, 66, 67]);

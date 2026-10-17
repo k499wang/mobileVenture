@@ -2,7 +2,7 @@
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { RunStore } from '../runtime/store.mjs';
+import { RunStore } from '../../runtime/store.mjs';
 
 const definitions = [
   { name: 'list_artifacts', description: 'List agent artifact names for the selected Venture Studio run.' },
@@ -54,9 +54,9 @@ export function createRunMcpServer({ foundation, runId }) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const arg = name => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
   const runId = arg('--run');
-  if (!runId) { process.stderr.write('Usage: node factory/agent/mcp/server.mjs --run RUN_ID [--foundation PATH]\n'); process.exitCode = 1; }
+  if (!runId) { process.stderr.write('Usage: node factory/agent/tools/mcp/server.mjs --run RUN_ID [--foundation PATH]\n'); process.exitCode = 1; }
   else {
-    const handle = createRunMcpServer({ runId, foundation: path.resolve(arg('--foundation') ?? fileURLToPath(new URL('../../../', import.meta.url))) });
+    const handle = createRunMcpServer({ runId, foundation: path.resolve(arg('--foundation') ?? fileURLToPath(new URL('../../../../', import.meta.url))) });
     const lines = createInterface({ input: process.stdin });
     let pending = Promise.resolve();
     lines.on('line', line => {

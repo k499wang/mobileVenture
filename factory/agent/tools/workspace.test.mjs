@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promis
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { createWorkspaceTools, subprocessEnvironment } from './tools.mjs';
+import { createWorkspaceTools, subprocessEnvironment } from './workspace.mjs';
 
 async function fixture(t, options = {}) {
   const foundationDir = await mkdtemp(path.join(os.tmpdir(), 'venture-tools-'));
