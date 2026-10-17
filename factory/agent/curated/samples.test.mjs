@@ -25,7 +25,7 @@ test('sample creative matrix preserves identity and makes bounded product claims
   }
 });
 test('unknown sample is a no-op and input artifacts remain unchanged', () => {
-  const artifact = { name: 'Original', features: [], evidenceIds: [] };
+  const artifact = { name: 'Original', features: [], evidenceIds: [], acceptanceTests: { contract: '', source: '', coverage: [] } };
   assert.equal(applySampleArtifact('planner', {}, artifact), artifact);
   const mapped = applySampleArtifact('planner', { sampleId: 'focus-starter' }, artifact);
   assert.equal(artifact.name, 'Original');

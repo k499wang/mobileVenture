@@ -46,13 +46,20 @@ export function decodeActions(value: unknown): RoutineAction[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is RoutineAction => !!item && typeof item === 'object' && typeof item.id === 'string' && typeof item.title === 'string' && typeof item.completed === 'boolean');
 }
+export function addAction(actions: RoutineAction[], title: string, id: string): RoutineAction[] {
+  const trimmed = title.trim();
+  return trimmed ? [...actions, { id, title: trimmed, completed: false }] : actions;
+}
+export function completeAction(actions: RoutineAction[], id: string): RoutineAction[] {
+  return actions.map((item) => item.id === id ? { ...item, completed: true } : item);
+}
 `;
 
 const demoFeature = `import { useEffect, useRef, useState } from 'react';
 import { Button, Card, Input, Screen, Text } from '@/components/ui';
 import { hydrateAppDataFromCloud, readAppData, saveAppData } from '@/services/user-data';
 import { trackEvent } from '@/services/analytics';
-import { decodeActions, type RoutineAction } from './model';
+import { addAction, completeAction, decodeActions, type RoutineAction } from './model';
 
 export default function VentureScreen() {
   const [actions, setActions] = useState<RoutineAction[]>([]);
@@ -99,13 +106,13 @@ export default function VentureScreen() {
     <Card>
       <Text variant="heading">Your next action</Text>
       <Input accessibilityLabel="New routine action" value={draft} onChangeText={setDraft} maxLength={120} placeholder="Take a short walk" editable={ready && !busy} />
-      <Button title="Add action" disabled={!ready || busy || !draft.trim()} onPress={() => { void persist([...actions, { id: String(Date.now()), title: draft.trim(), completed: false }], false); }} />
+      <Button title="Add action" disabled={!ready || busy || !draft.trim()} onPress={() => { void persist(addAction(actions, draft, String(Date.now())), false); }} />
     </Card>
     {!ready ? <Text color="muted">Loading your routine…</Text> : actions.length === 0 ? <Text color="muted">Start small. Add one action for today.</Text> : null}
     {actions.map((action) => <Card key={action.id}>
       <Text variant="heading">{action.title}</Text>
       <Text color="muted">{action.completed ? 'Completed. A small win counts.' : 'Whenever it fits.'}</Text>
-      <Button title={action.completed ? 'Completed' : 'Mark complete'} variant="secondary" disabled={action.completed || busy} onPress={() => { void persist(actions.map((item) => item.id === action.id ? { ...item, completed: true } : item), true); }} />
+      <Button title={action.completed ? 'Completed' : 'Mark complete'} variant="secondary" disabled={action.completed || busy} onPress={() => { void persist(completeAction(actions, action.id), true); }} />
     </Card>)}
     {status ? <Text accessibilityLiveRegion="polite" color="muted">{status}</Text> : null}
     <Text variant="caption" color="muted">Illustrative prototype built from synthetic demo research. Market validation is still required.</Text>
@@ -139,7 +146,7 @@ export async function runAgent({ mode, role, context = {}, schema, tools = [], e
         const spec = context.artifacts?.planner;
         const generated = await callTool('generate_app', { name: spec?.name ?? 'Shift Flow', slug: spec?.slug ?? 'shift-and-flow' });
         if (generated?.ok === false) throw new Error(generated.error ?? 'App generation failed.');
-        for (const path of ['docs/expo-sdk-57.md', 'src/components/ui.tsx', 'src/theme/theme.ts', 'src/services/user-data.ts']) {
+        for (const path of ['docs/expo-sdk-57.md', 'src/components/ui.tsx', 'src/theme/theme.ts', 'src/services/user-data.ts', ...(generated?.acceptanceTests ? [generated.acceptanceTests] : [])]) {
           const inspected = await callTool('read_file', { path });
           if (inspected?.ok === false) throw new Error(inspected.error ?? `Could not inspect ${path}`);
         }

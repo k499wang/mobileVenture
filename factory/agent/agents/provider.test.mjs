@@ -164,7 +164,9 @@ test('generated feature never overwrites saved data when initial cloud and local
     '@/components/ui': Object.fromEntries(['Button', 'Card', 'Input', 'Screen', 'Text'].map((name) => [name, name])),
     '@/services/user-data': storage,
     '@/services/analytics': { trackEvent() {} },
-    './model': { decodeActions: (value) => Array.isArray(value) ? value : [] },
+    './model': { decodeActions: (value) => Array.isArray(value) ? value : [],
+      addAction: (actions, title, id) => title.trim() ? [...actions, { id, title: title.trim(), completed: false }] : actions,
+      completeAction: (actions, id) => actions.map((item) => item.id === id ? { ...item, completed: true } : item) },
   };
   const exported = {};
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText,

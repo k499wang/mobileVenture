@@ -51,7 +51,10 @@ export function applySampleArtifact(role, context, artifact) {
   }
   if (roleId === 'planner') {
     Object.assign(result, { name: sample.name, slug: data.slug, targetUser: data.segment, problem: data.problem, hypothesis: data.hypothesis });
-    result.features = [{ id: 'flexible-checklist', title: data.title, description: data.body, evidenceIds: result.evidenceIds, acceptanceCriteria: ['A user can manually add a non-empty action.', 'A user can mark an action complete.', 'Actions persist after reopening the screen.', 'No punitive missed-day streak is shown.'] }];
+    const acceptanceCriteria = ['A user can manually add a non-empty action.', 'A user can mark an action complete.', 'Actions persist after reopening the screen.', 'No punitive missed-day streak is shown.'];
+    result.features = [{ id: 'flexible-checklist', title: data.title, description: data.body, evidenceIds: result.evidenceIds, acceptanceCriteria }];
+    // Same tests and criterion order as the fixture plan; only the criterion wording differs.
+    result.acceptanceTests = { ...result.acceptanceTests, coverage: result.acceptanceTests.coverage.map((item, index) => ({ ...item, criterion: acceptanceCriteria[index] })) };
     result.nonGoals = ['Diagnosis or treatment', 'Sensitive-health ad targeting', 'Timers or AI task decomposition', 'Exhaustive competitor research or market validation', 'Campaign publishing or measured ad results'];
   }
   if (roleId === 'creative') {
