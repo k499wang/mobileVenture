@@ -1,7 +1,19 @@
+/**
+ * The agents: who they are, which tools each may use, and the exact shape of what each must submit.
+ *
+ *  - ROLES               id, description and tool allowlist for each core role
+ *                        (persona, design, ads and creative roles come from growth.mjs)
+ *  - artifactSchemas     the structured output each role must submit via submit_artifact
+ *  - responsibilities    each role's instructions to the model
+ *  - baseDemoArtifact    fixed artifacts for demo mode (clearly synthetic)
+ *
+ * The same schema is used three ways: sent to the model as the submit_artifact parameters,
+ * checked by runtime/validation.mjs, and rendered by the dashboard.
+ */
 import { growthRoles, growthSchemas, growthInstructions, growthDemoArtifact } from './growth.mjs';
 import { applySampleArtifact } from '../curated/samples.mjs';
 
-/** Role contracts are shared by the model, checkpoint validator, and dashboard. */
+// Small helpers for writing schemas. `object` makes every field required and rejects extras.
 const string = { type: 'string' };
 const strings = { type: 'array', items: string };
 const object = (properties) => ({
@@ -23,6 +35,8 @@ const evidence = object({
   fixture: { type: 'boolean' },
 });
 
+// Tool allowlists are enforced in code (runtime/orchestrator.mjs), not just described in prompts.
+// For example, only the builder can write files; the verifier can only read and run checks.
 export const ROLES = [
   {
     id: 'researcher',
@@ -83,6 +97,8 @@ export const ROLES = [
   ...growthRoles,
 ];
 
+// What each role must submit. Note the planner's `acceptanceTests`: executable tests written
+// before any code exists, approved with the spec, and run against the builder's code.
 export const artifactSchemas = {
   researcher: object({ summary: string, evidence: array(evidence), limitations: strings }),
   competitor: object({
@@ -157,6 +173,7 @@ export const artifactSchemas = {
   ...growthSchemas,
 };
 
+// Per-role instructions sent to the model. Rules here are backed by code checks where possible.
 const responsibilities = {
   ...growthInstructions,
   researcher:
@@ -177,6 +194,7 @@ const responsibilities = {
     'Use the approved specification and evidence to propose small, measurable experiments. Distinguish planned instrumentation from implemented events. Do not claim experiments have run or invent results. Include decision thresholds and limitations. Keep purchase revenue owned by RevenueCat.',
 };
 
+// Full system instructions for a role: its responsibilities plus rules shared by every agent.
 export function instructionsFor(role) {
   const id = typeof role === 'string' ? role : role.id;
   if (!responsibilities[id]) throw new Error(`Unknown agent role: ${id}`);
