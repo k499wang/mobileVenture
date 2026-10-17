@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { VentureStudio } from './runtime/orchestrator.mjs';
 import { createStudioServer } from './server.mjs';
-import { SAMPLES } from './samples.mjs';
-import { CURATED_VERSION } from './research/index.mjs';
+import { SAMPLES } from './curated/samples.mjs';
+import { CURATED_VERSION } from './curated/research/index.mjs';
 
 const args = process.argv.slice(2);
 const command = args[0] ?? 'serve';

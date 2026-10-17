@@ -9,8 +9,8 @@ import { RESEARCH_ROLES } from '../agents/growth.mjs';
 import { createIntegrationRegistry } from '../tools/mcp/client.mjs';
 import { renderCreativePack, validateCreativePack } from '../outputs/creatives/render.mjs';
 import { createLaunchArchive } from '../outputs/launch-pack.mjs';
-import { SAMPLES } from '../samples.mjs';
-import { loadCuratedResearch, CURATED_VERSION } from '../research/index.mjs';
+import { SAMPLES } from '../curated/samples.mjs';
+import { loadCuratedResearch, CURATED_VERSION } from '../curated/research/index.mjs';
 
 const dependencies = {
   researcher: ['critic'], competitor: ['critic'], designer: ['critic'], ads_research: ['critic'],

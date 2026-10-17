@@ -1,6 +1,6 @@
 import { demoArtifact, instructionsFor } from './roles.mjs';
 import { RESEARCH_ROLES } from './growth.mjs';
-import { sampleScreenCopy } from '../samples.mjs';
+import { sampleScreenCopy } from '../curated/samples.mjs';
 
 const ENDPOINT = 'https://api.openai.com/v1/responses';
 const MAX_TURNS = 12;

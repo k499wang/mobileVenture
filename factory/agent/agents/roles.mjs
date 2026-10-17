@@ -1,5 +1,5 @@
 import { growthRoles, growthSchemas, growthInstructions, growthDemoArtifact } from './growth.mjs';
-import { applySampleArtifact } from '../samples.mjs';
+import { applySampleArtifact } from '../curated/samples.mjs';
 
 /** Role contracts are shared by the model, checkpoint validator, and dashboard. */
 const string = { type: 'string' };
