@@ -19,7 +19,7 @@ async function harness(options = {}) {
   const creativeValidator = async () => ({ ok: true, checks: [{ name: 'test-only-creative-pack-fixture', passed: true, detail: 'Fixture result; real PNGs are covered by renderer tests.' }] });
   const launchArchiver = async () => ({ archiveFilename: 'fixture.zip' });
   const workspaceFactory = async ({ injectFailure }) => ({
-    definitions: workspaceToolDefinitions, workspace: '/test/workspace',
+    definitions: workspaceToolDefinitions, workspace: '/test/workspace', setAcceptanceTests: () => {},
     execute: async (name, args) => {
       if (name === 'generate_app') { generations++; return { workspace: '/test/workspace' }; }
       if (name === 'read_file') return { path: args.path, content: 'foundation source fixture' };

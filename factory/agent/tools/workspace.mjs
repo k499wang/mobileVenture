@@ -15,6 +15,7 @@ const FOUNDATION_TESTS = [
   'src/features/pet/engine.test.ts',
   'src/features/auth/logic.test.ts',
 ];
+const ACCEPTANCE_TESTS = 'src/features/venture/acceptance.test.ts';
 const ROOT_FILES = new Set(['package.json', 'app.json', 'tsconfig.json', 'expo-env.d.ts']);
 const SDK_GUIDANCE = 'docs/expo-sdk-57.md';
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.json', '.md']);
@@ -33,7 +34,7 @@ export const workspaceToolDefinitions = [
     { path: { type: 'string' } }, ['path']),
   tool('write_file', 'Write a TypeScript feature source under src/features/venture/ or compose its route in src/app/(tabs)/index.tsx. Test/config/dependency edits are prohibited.',
     { path: { type: 'string' }, content: { type: 'string' } }, ['path', 'content']),
-  tool('run_checks', 'Run strict TypeScript checking on the generated app and fixed foundation regression tests. Does not execute model-authored tests or validate simulator behavior.'),
+  tool('run_checks', 'Run strict TypeScript checking, fixed foundation regression tests and the approved planner acceptance tests. Builder-authored tests are never executed, and simulator behavior is not validated.'),
 ];
 
 function inside(root, target) {
@@ -119,6 +120,7 @@ export async function createWorkspaceTools({ runDir, foundationDir, onEvent = as
   await mkdir(home, { recursive: true });
   const env = subprocessEnvironment(home);
   const emit = async (type, data) => onEvent(type, data);
+  let acceptanceSource;
 
   async function hasWorkspace() {
     try {
@@ -205,6 +207,26 @@ export async function createWorkspaceTools({ runDir, foundationDir, onEvent = as
     return { workspace, name, slug, reused: false };
   }
 
+  // The approved planner tests are rewritten from the specification, so workspace edits cannot weaken them.
+  function setAcceptanceTests(source) {
+    if (typeof source !== 'string' || !source || Buffer.byteLength(source) > MAX_FILE_BYTES) throw new Error('Approved acceptance tests are required.');
+    acceptanceSource = source;
+  }
+
+  async function installAcceptanceTests() {
+    if (!acceptanceSource || !await hasWorkspace()) return false;
+    await noSymlinks(workspace, ACCEPTANCE_TESTS, { missing: true });
+    await mkdir(path.dirname(path.join(workspace, ACCEPTANCE_TESTS)), { recursive: true });
+    await noSymlinks(workspace, ACCEPTANCE_TESTS, { missing: true });
+    await writeFile(path.join(workspace, ACCEPTANCE_TESTS), acceptanceSource, 'utf8');
+    return true;
+  }
+
+  async function generateWithTests(args) {
+    const result = await generate(args);
+    return { ...result, acceptanceTests: await installAcceptanceTests() ? ACCEPTANCE_TESTS : null };
+  }
+
   async function writeSource({ path: input, content }) {
     const relative = relativeSource(input);
     if (!await hasWorkspace()) throw new Error('Generate the app before writing feature files.');
@@ -260,11 +282,15 @@ export async function createWorkspaceTools({ runDir, foundationDir, onEvent = as
     }
     checks.push({ name: 'foundation-regression-tests', ...await command(process.execPath,
       [jest, '--config', jestConfig, '--runInBand', '--watch=false', '--runTestsByPath', ...baselineTests], { cwd: workspace, env }) });
+    if (await installAcceptanceTests()) {
+      checks.push({ name: 'acceptance-tests', ...await command(process.execPath,
+        [jest, '--config', jestConfig, '--runInBand', '--watch=false', '--runTestsByPath', ACCEPTANCE_TESTS], { cwd: workspace, env }) });
+    } else checks.push({ name: 'acceptance-tests', passed: false, exitCode: null, timedOut: false, output: 'No approved acceptance tests were supplied.', durationMs: 0 });
     return { ok: checks.every((check) => check.passed), checks,
-      scope: 'Strict generated-source typecheck and fixed foundation regression tests. Generated feature behavior requires simulator/device review.' };
+      scope: 'Strict generated-source typecheck, fixed foundation regression tests and approved planner acceptance tests. Criteria marked for manual review and native behavior require simulator/device review.' };
   }
 
-  const handlers = { generate_app: generate, list_files: listSources, read_file: readSource, write_file: writeSource, run_checks: verify };
+  const handlers = { generate_app: generateWithTests, list_files: listSources, read_file: readSource, write_file: writeSource, run_checks: verify };
   async function execute(name, args = {}) {
     if (!Object.hasOwn(handlers, name)) throw new Error(`Unknown workspace tool: ${name}`);
     if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Tool arguments must be an object.');
@@ -276,5 +302,5 @@ export async function createWorkspaceTools({ runDir, foundationDir, onEvent = as
     return handlers[name](args);
   }
   return { definitions: workspaceToolDefinitions, execute, workspace, listFiles: listSources,
-    readFile: (input) => readSource(typeof input === 'string' ? { path: input } : input), verify };
+    readFile: (input) => readSource(typeof input === 'string' ? { path: input } : input), verify, setAcceptanceTests };
 }

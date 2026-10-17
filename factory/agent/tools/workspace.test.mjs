@@ -152,9 +152,13 @@ test('verification invokes fixed checks with bounded output and rejects untruste
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, 'console.log(JSON.stringify({args:process.argv.slice(2),key:process.env.OPENAI_API_KEY}));');
   }
+  const missing = await tools.verify();
+  assert.equal(missing.ok, false, 'checks fail until approved acceptance tests are supplied');
+  assert.equal(missing.checks[2].name, 'acceptance-tests');
+  tools.setAcceptanceTests("it('works', () => {});\n");
   const result = await tools.verify();
   assert.equal(result.ok, true);
-  assert.equal(result.checks.length, 2);
+  assert.equal(result.checks.length, 3);
   const typecheck = JSON.parse(result.checks[0].output);
   assert.deepEqual(typecheck.args, ['--noEmit', '--project', path.join(workspace, 'tsconfig.json')]);
   const jest = JSON.parse(result.checks[1].output);
@@ -162,10 +166,32 @@ test('verification invokes fixed checks with bounded output and rejects untruste
   assert.ok(jest.args.includes('src/features/pet/engine.test.ts'));
   assert.ok(!jest.args.some((arg) => arg.includes('src/features/venture/')));
   assert.equal(jest.key, undefined);
+  assert.deepEqual(JSON.parse(result.checks[2].output).args.slice(-2), ['--runTestsByPath', 'src/features/venture/acceptance.test.ts']);
   await rm(petTest);
   const withoutPet = await tools.verify();
   assert.ok(!JSON.parse(withoutPet.checks[1].output).args.includes('src/features/pet/engine.test.ts'));
   await rm(path.join(workspace, 'node_modules'));
   await symlink(path.join(foundationDir, 'src'), path.join(workspace, 'node_modules'));
   await assert.rejects(tools.verify(), /Untrusted workspace/);
+});
+
+test('approved acceptance tests are installed at generation, unwritable by the builder, and restored before checks', async (t) => {
+  const { tools, foundationDir, workspace } = await fixture(t);
+  const approved = "it('adds an action', () => {});\n";
+  tools.setAcceptanceTests(approved);
+  const generated = await tools.execute('generate_app', { name: 'Tests Demo', slug: 'tests-demo' });
+  assert.equal(generated.acceptanceTests, 'src/features/venture/acceptance.test.ts');
+  const testFile = path.join(workspace, generated.acceptanceTests);
+  assert.equal(await readFile(testFile, 'utf8'), approved);
+  assert.equal((await tools.execute('read_file', { path: generated.acceptanceTests })).content, approved);
+  await assert.rejects(tools.execute('write_file', { path: generated.acceptanceTests, content: "it('adds an action', () => {});" }), /tests\/configuration are prohibited/);
+  await writeFile(testFile, '// weakened outside the tools');
+  for (const executable of ['typescript/bin/tsc', 'jest/bin/jest.js']) {
+    const target = path.join(foundationDir, 'node_modules', executable);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, 'console.log("{}");');
+  }
+  await tools.verify();
+  assert.equal(await readFile(testFile, 'utf8'), approved);
+  assert.throws(() => tools.setAcceptanceTests(''), /required/);
 });

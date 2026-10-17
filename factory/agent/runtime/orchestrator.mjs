@@ -69,7 +69,7 @@ export class VentureStudio {
     if (mode === 'live' && !this.liveAvailable) throw new Error('Live mode requires server-side OPENAI_API_KEY and OPENAI_MODEL.');
     if (mode === 'live' && injectFailure) throw new Error('Failure injection is available only in fixture demo mode.');
     const state = {
-      id: randomUUID(), pipelineVersion: 2, brief: brief.trim(), mode, injectFailure: Boolean(injectFailure), autoApprove: Boolean(autoApprove),
+      id: randomUUID(), pipelineVersion: 3, brief: brief.trim(), mode, injectFailure: Boolean(injectFailure), autoApprove: Boolean(autoApprove),
       status: 'running', stage: 'research', round: 0, repairAttempt: 0,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
       artifacts: {}, tasks: {}, events: [], sources: {}, approvedHash: null, specHash: null,
@@ -251,6 +251,8 @@ export class VentureStudio {
             state.stage = 'build'; break;
           case 'build':
             if (state.approvedHash !== digest(state.artifacts.planner)) throw new Error('Specification changed; approval is no longer valid.');
+            if (!state.artifacts.planner.acceptanceTests) throw new Error('This run predates planner acceptance tests. Start a new run.');
+            workspace.setAcceptanceTests(state.artifacts.planner.acceptanceTests.source);
             await parallel(['builder', 'experimenter', 'creative']); state.stage = 'render'; break;
           case 'render': {
             const creativeInputHash = digest({ creative: state.artifacts.creative, persona: state.artifacts.persona, spec: state.artifacts.planner });
@@ -268,6 +270,7 @@ export class VentureStudio {
             state.stage = 'verify'; break;
           }
           case 'verify': {
+            workspace.setAcceptanceTests(state.artifacts.planner.acceptanceTests.source);
             await parallel(['verifier', 'creative_qa']);
             const verdict = state.artifacts.verifier;
             if (verdict.verdict === 'fail') {
