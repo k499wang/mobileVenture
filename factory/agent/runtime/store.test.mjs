@@ -13,7 +13,8 @@ async function tempStore(t) {
 
 test('run IDs are bounded and cannot contain path segments', () => {
   assert.equal(isRunId('run-2026-abc'), true);
-  for (const value of ['short', '../escape-run', 'a/b/c/d/e/f', 'x'.repeat(81), 42, null]) assert.equal(isRunId(value), false);
+  for (const value of ['short', '../escape-run', 'a/b/c/d/e/f', 'x'.repeat(81), 42, null])
+    assert.equal(isRunId(value), false);
   assert.throws(() => new RunStore('/tmp').directory('../../etc'), /Invalid run ID/);
 });
 
@@ -31,7 +32,10 @@ test('list returns newest runs first and skips corrupt or foreign folders', asyn
   await mkdir(path.join(store.root, 'run-corrupted'), { recursive: true });
   await writeFile(path.join(store.root, 'run-corrupted', 'state.json'), '{');
   await mkdir(path.join(store.root, '.hidden'), { recursive: true });
-  assert.deepEqual((await store.list()).map(run => run.id), ['run-newer-one', 'run-older-one']);
+  assert.deepEqual(
+    (await store.list()).map((run) => run.id),
+    ['run-newer-one', 'run-older-one'],
+  );
 });
 
 test('a live lock blocks a second holder until released', async (t) => {
