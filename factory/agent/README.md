@@ -176,6 +176,17 @@ dependency artifacts, the brief, and relevant verification feedback. Shared
 artifacts preserve task context across roles; they are not a shared unbounded
 chat transcript. Historical artifact versions remain in the event trace.
 
+The planner writes acceptance tests before any code exists: a contract for
+`src/features/venture/model.ts`, one Jest file, and a coverage map that gives every
+acceptance criterion either a named test or a reason it needs manual review.
+`runtime/validation.mjs` rejects missing coverage, test names absent from the
+source, and imports other than `@jest/globals` and the feature model. The tests
+are part of the specification, so approval covers them. `tools/workspace.mjs`
+installs them at `src/features/venture/acceptance.test.ts`, which the builder can
+read but not write, restores the approved file before every check, and runs it as
+the `acceptance-tests` check. Tests cover the model contract; screen behavior and
+criteria marked for manual review still need a simulator or device.
+
 Approval records the SHA-256 of the specification. A changed specification cannot
 use an earlier approval. Research may request one follow-up round; unresolved
 evidence gaps stop execution. Verification can request two repairs; unresolved
