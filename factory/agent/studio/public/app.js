@@ -255,7 +255,7 @@ function renderSpecification() {
   if (!spec) return empty('A specification you can question.', 'The planner will turn the evidence into a focused product proposal. You review it before the builder can act.', '◇');
   const nodes = [];
   if (run.status === 'awaiting_approval') {
-    const approval = card('Your decision, before the build.', textParagraph('Review the target user, assumptions, feature scope, and acceptance criteria below. Approval is bound to this specification version.'),
+    const approval = card('Your decision, before the build.', textParagraph('Review the target user, assumptions, feature scope, acceptance criteria and their tests below. Approval is bound to this specification version, tests included.'),
       el('div', { class: 'approval-hash' }, `Specification hash: ${run.specHash || 'unavailable'}`),
       el('button', { class: 'primary', disabled: state.busy || !run.specHash, onclick: () => action('approve', { specHash: run.specHash }) }, state.busy ? 'Approving…' : 'Approve specification & build →'));
     approval.classList.add('approval-card'); nodes.push(approval);
@@ -264,6 +264,11 @@ function renderSpecification() {
     el('h4', {}, 'Who it serves'), textParagraph(spec.targetUser), el('h4', {}, 'The problem'), textParagraph(spec.problem), el('h4', {}, 'Product hypothesis'), textParagraph(spec.hypothesis), evidenceTags(spec.evidenceIds)));
   for (const feature of list(spec.features)) nodes.push(card(feature.title || feature.id, textParagraph(feature.description), el('h4', {}, 'Acceptance criteria'), bulletList(feature.acceptanceCriteria), evidenceTags(feature.evidenceIds)));
   if (list(spec.nonGoals).length) nodes.push(card('Outside this prototype', bulletList(spec.nonGoals)));
+  if (spec.acceptanceTests) nodes.push(card('Acceptance tests, written before the build',
+    textParagraph('The builder must make these pass and cannot edit them. Verification restores and runs this file.'),
+    bulletList(list(spec.acceptanceTests.coverage).map((item) => item.testName ? `${str(item.criterion)} → test: ${str(item.testName)}` : `${str(item.criterion)} → manual review: ${str(item.manualReason)}`)),
+    el('h4', {}, 'Contract the builder must implement'), el('pre', { class: 'json-view' }, str(spec.acceptanceTests.contract)),
+    el('details', { class: 'json-details' }, el('summary', {}, 'Inspect test source'), el('pre', { class: 'json-view' }, str(spec.acceptanceTests.source)))));
   nodes.push(card(null, jsonDetails(spec, 'Inspect complete specification')));
   return nodes;
 }
