@@ -7,7 +7,7 @@ Each concept produces square (1080 × 1080), portrait (1080 × 1350), and story 
 Exports live exclusively in `<runDir>/creatives/`: `manifest.json`, `ad-copy.csv`, `source-references.json`, `qa.json`, plus image files. CSV cells neutralize spreadsheet formula prefixes. Source references retain persona, awareness stage, evidence IDs, design reference IDs, and claim notes.
 
 ```js
-import { renderCreativePack, validateCreativePack } from './creatives/render.mjs';
+import { renderCreativePack, validateCreativePack } from './outputs/creatives/render.mjs';
 const creativePack = await renderCreativePack({
   runDir, brand: { name: 'Daylight' }, spec,
   personaArtifact, creativeArtifact, mode: 'demo',
@@ -19,4 +19,4 @@ const report = await validateCreativePack({
 
 QA verifies file signatures/dimensions and provenance, and requires all three PNG formats for all five awareness stages **for each expected persona**. QA is structural, not a claim of Meta policy approval, visual quality, or successful ad performance. The renderer rejects unsafe identifiers, symlink output directories/files, excessive inputs, and manifest traversal. Orchestration is responsible for authorizing `runDir` before invoking it.
 
-Run tests with `node --test factory/agent/creatives/render.test.mjs`. Dependencies are isolated in `factory/agent/package.json`; install using `npm install --prefix factory/agent`.
+Run tests with `node --test factory/agent/outputs/creatives/render.test.mjs`. Dependencies are isolated in `factory/agent/package.json`; install using `npm install --prefix factory/agent`.

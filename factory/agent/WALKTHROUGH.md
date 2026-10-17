@@ -39,12 +39,12 @@ verified unless you actually performed this step.
 
 ## 2:40–4:10 — Walk through the difficult source
 
-1. `orchestrator.mjs`, `drive`: deterministic transitions, parallel research,
+1. `runtime/orchestrator.mjs`, `drive`: deterministic transitions, parallel research,
    bounded follow-up, approval and repair. `executeRole`: dependency-scoped
    context, runtime validation and tool allowlists.
-2. `provider.mjs`, `runAgent`: model tool-call loop, corrected calls, stateless
+2. `agents/provider.mjs`, `runAgent`: model tool-call loop, corrected calls, stateless
    continuation and synchronous shared budget reservations.
-3. `tools.mjs`, `generate` and `writeSource`: crash recovery, identity-safe
+3. `tools/workspace.mjs`, `generate` and `writeSource`: crash recovery, identity-safe
    generation and path/permission checks. `verify`: fixed verification commands.
 
 Explain one tradeoff: roles coordinate through validated artifacts rather than

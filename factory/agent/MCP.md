@@ -19,7 +19,7 @@ Configure any stdio MCP host with:
   "mcpServers": {
     "venture-studio": {
       "command": "node",
-      "args": ["/absolute/path/Start/factory/agent/mcp/server.mjs", "--run", "YOUR-RUN-ID"]
+      "args": ["/absolute/path/Start/factory/agent/tools/mcp/server.mjs", "--run", "YOUR-RUN-ID"]
     }
   }
 }
@@ -33,4 +33,4 @@ The Streamable HTTP client implements initialize, initialized notification, pagi
 
 `createIntegrationRegistry` is async-initialized via `await registry.initialize()`; synchronous `status()` never makes network requests. `toolsForRole(role)` discovers configured providers and returns a strict Responses-compatible function. `discoverServer(id)` returns sanitized vendor tool metadata even with an empty allowlist. `redact(value)` removes configured token echoes and credential-bearing URLs from structured data. `execute(name,args,{role})` enforces discovery plus the explicit allowlist. Missing or unavailable integrations leave web research as the workflow's fallback. Status fields distinguish configured, authorization required, unavailable and connected.
 
-Tests: `node --test factory/agent/mcp/*.test.mjs`.
+Tests: `node --test factory/agent/tools/mcp/*.test.mjs`.
