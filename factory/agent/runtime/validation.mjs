@@ -24,6 +24,30 @@ export function validate(schema, value, location = '$') {
   return value;
 }
 
+const ACCEPTANCE_IMPORTS = new Set(['@jest/globals', '@/features/venture/model']);
+
+/** Planner tests are written before code exists: every criterion is tested or explicitly left to manual review. */
+export function validateAcceptanceTests(spec) {
+  const tests = spec.acceptanceTests;
+  if (!tests) throw new Error('The specification must include acceptance tests written before the build.');
+  const imports = [...tests.source.matchAll(/\b(?:from|import)\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  if (!imports.length || imports.some(name => !ACCEPTANCE_IMPORTS.has(name))) throw new Error('Acceptance tests may import only @jest/globals and @/features/venture/model.');
+  if (/\brequire\s*\(|\bimport\s*\(/.test(tests.source)) throw new Error('Acceptance tests cannot load modules dynamically.');
+  const expected = new Map(spec.features.flatMap(feature => feature.acceptanceCriteria.map(criterion => [`${feature.id}\0${criterion}`, criterion])));
+  const seen = new Set();
+  for (const item of tests.coverage) {
+    const key = `${item.featureId}\0${item.criterion}`;
+    if (!expected.has(key)) throw new Error(`Acceptance coverage names an unknown criterion: ${item.criterion}`);
+    if (seen.has(key)) throw new Error(`Acceptance criterion is covered twice: ${item.criterion}`);
+    seen.add(key);
+    if (Boolean(item.testName.trim()) === Boolean(item.manualReason.trim())) throw new Error(`Give either a test name or a manual-review reason for: ${item.criterion}`);
+    const name = item.testName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (name && !new RegExp(`\\b(?:it|test)\\(\\s*(['"\`])${name}\\1`).test(tests.source)) throw new Error(`Acceptance test not found in source: ${item.testName}`);
+  }
+  for (const [key, criterion] of expected) if (!seen.has(key)) throw new Error(`Acceptance criterion has no test or manual-review reason: ${criterion}`);
+  if (!tests.coverage.some(item => item.testName.trim())) throw new Error('At least one acceptance criterion must have an automated test.');
+}
+
 export function digest(value) { return createHash('sha256').update(JSON.stringify(value)).digest('hex'); }
 
 export function validateReferences(role, artifact, artifacts, { mode, sources = [] }) {
@@ -61,6 +85,7 @@ export function validateReferences(role, artifact, artifacts, { mode, sources = 
     if (!/^[a-z][a-z0-9-]{1,48}$/.test(artifact.slug)) throw new Error('Use a safe lowercase app slug.');
     if (!artifact.features.length) throw new Error('Specification must have at least one feature.');
     artifact.features.forEach(item => { check(item.evidenceIds); if (!item.acceptanceCriteria.length) throw new Error('Feature acceptance criteria are required.'); });
+    validateAcceptanceTests(artifact);
   }
   const checkOwn = (ids) => {
     if (!ids?.length) throw new Error('Reference at least one research record.');

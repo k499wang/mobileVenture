@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { digest, validate, validateReferences } from './validation.mjs';
+import { digest, validate, validateAcceptanceTests, validateReferences } from './validation.mjs';
+import { demoArtifact } from '../agents/roles.mjs';
 
 const schema = { type: 'object', required: ['name'], properties: { name: { type: 'string' }, count: { type: 'number' } } };
 
@@ -48,7 +49,32 @@ test('decisions must cite known evidence', () => {
 
 test('planner slugs must be safe lowercase identifiers', () => {
   const artifacts = { researcher: { evidence: [{ id: 'e1' }] } };
-  const plan = slug => ({ slug, evidenceIds: ['e1'], features: [{ evidenceIds: ['e1'], acceptanceCriteria: ['works'] }] });
+  const plan = slug => ({ slug, evidenceIds: ['e1'], features: [{ id: 'f1', evidenceIds: ['e1'], acceptanceCriteria: ['works'] }],
+    acceptanceTests: { contract: '', source: "import { it } from '@jest/globals';\nit('works', () => {});\n", coverage: [{ featureId: 'f1', criterion: 'works', testName: 'works', manualReason: '' }] } });
   assert.ok(validateReferences('planner', plan('shift-flow'), artifacts, { mode: 'demo' }));
   for (const slug of ['Shift', '../x', '1app', 'a']) assert.throws(() => validateReferences('planner', plan(slug), artifacts, { mode: 'demo' }), /safe lowercase/);
+});
+
+test('planner acceptance tests must cover every criterion with a real test or a manual-review reason', () => {
+  const spec = () => structuredClone(demoArtifact('planner'));
+  assert.doesNotThrow(() => validateAcceptanceTests(spec()));
+  const missing = spec(); missing.acceptanceTests.coverage.pop();
+  assert.throws(() => validateAcceptanceTests(missing), /no test or manual-review reason/);
+  const phantom = spec(); phantom.acceptanceTests.coverage[0].testName = 'a test that was never written';
+  assert.throws(() => validateAcceptanceTests(phantom), /not found in source/);
+  const both = spec(); both.acceptanceTests.coverage[0].manualReason = 'Also manual';
+  assert.throws(() => validateAcceptanceTests(both), /either a test name or a manual-review reason/);
+  const allManual = spec(); allManual.acceptanceTests.coverage.forEach(item => { item.testName = ''; item.manualReason = 'Review by hand'; });
+  assert.throws(() => validateAcceptanceTests(allManual), /At least one/);
+  const absent = spec(); delete absent.acceptanceTests;
+  assert.throws(() => validateAcceptanceTests(absent), /must include acceptance tests/);
+});
+
+test('planner acceptance tests may import only jest globals and the feature model', () => {
+  const spec = structuredClone(demoArtifact('planner'));
+  for (const source of [`import fs from 'node:fs';\n`, `import { x } from '@/services/user-data';\n`, `const fs = require('fs');\n`, `await import('node:fs');\n`]) {
+    const changed = structuredClone(spec);
+    changed.acceptanceTests.source = source + changed.acceptanceTests.source;
+    assert.throws(() => validateAcceptanceTests(changed), /import only|dynamically/);
+  }
 });
