@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { VentureStudio } from './runtime/orchestrator.mjs';
-import { createStudioServer } from './server.mjs';
+import { createStudioServer } from './studio/server.mjs';
 import { SAMPLES } from './curated/samples.mjs';
 import { CURATED_VERSION } from './curated/research/index.mjs';
 

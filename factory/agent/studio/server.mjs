@@ -2,10 +2,10 @@ import http from 'node:http';
 import { constants } from 'node:fs';
 import { readFile, lstat, open } from 'node:fs/promises';
 import path from 'node:path';
-import { ROLES } from './agents/roles.mjs';
-import { isRunId } from './runtime/store.mjs';
-import { SAMPLES } from './curated/samples.mjs';
-import { loadCuratedResearch } from './curated/research/index.mjs';
+import { ROLES } from '../agents/roles.mjs';
+import { isRunId } from '../runtime/store.mjs';
+import { SAMPLES } from '../curated/samples.mjs';
+import { loadCuratedResearch } from '../curated/research/index.mjs';
 import { createHash } from 'node:crypto';
 
 const staticFiles = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
@@ -53,7 +53,7 @@ export function createStudioServer(studio) {
         const curated = await loadCuratedResearch();
         const source = curated.records.find(record => record.ad?.previewFilename === filename);
         if (!source || filename !== path.basename(filename)) return json(404, { error: 'Research preview not found.' });
-        const file = new URL(`./curated/research/previews/${filename}`, import.meta.url);
+        const file = new URL(`../curated/research/previews/${filename}`, import.meta.url);
         const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
         let content;
         try {
