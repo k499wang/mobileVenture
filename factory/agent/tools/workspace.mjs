@@ -1,3 +1,19 @@
+/**
+ * Everything an agent can touch on disk: the five workspace tools and their safety rules.
+ *
+ *   generate_app  create the app from the foundation (crash-safe, see `generate`)
+ *   list_files    list app source files
+ *   read_file     read one source file
+ *   write_file    write feature code, only under src/features/venture/ and the tab route
+ *   run_checks    typecheck + foundation regression tests + the planner's acceptance tests
+ *
+ * Each run gets its own folder under .agent-runs/<id>/. Agents pass relative paths only;
+ * every path is checked for traversal, hidden files, secrets and symlinks before use, and
+ * checks run fixed commands with a scrubbed environment (no API keys reach subprocesses).
+ *
+ * Walkthrough order: `generate` (the crash-recovery journal), then `writeSource` (what the
+ * builder may write), then `verify` (the real checks, including acceptance tests).
+ */
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, readFile, readdir, realpath, rename, rm, symlink, writeFile } from 'node:fs/promises';
@@ -5,6 +21,7 @@ import path from 'node:path';
 
 const MAX_FILE_BYTES = 100_000;
 const MAX_OUTPUT_BYTES = 14_000;
+// Existing foundation tests that every generated app must still pass (regression check).
 const FOUNDATION_TESTS = [
   'src/store/app-store.test.ts',
   'src/services/attribution.test.ts',
@@ -15,6 +32,7 @@ const FOUNDATION_TESTS = [
   'src/features/pet/engine.test.ts',
   'src/features/auth/logic.test.ts',
 ];
+// Where the planner's approved tests are installed. The builder can read this file, not write it.
 const ACCEPTANCE_TESTS = 'src/features/venture/acceptance.test.ts';
 const ROOT_FILES = new Set(['package.json', 'app.json', 'tsconfig.json', 'expo-env.d.ts']);
 const SDK_GUIDANCE = 'docs/expo-sdk-57.md';
@@ -31,6 +49,7 @@ function tool(name, description, properties = {}, required = []) {
   };
 }
 
+// Tool definitions exactly as the model sees them (OpenAI function-calling format).
 export const workspaceToolDefinitions = [
   tool(
     'generate_app',
@@ -61,6 +80,8 @@ function inside(root, target) {
   return target === root || target.startsWith(`${root}${path.sep}`);
 }
 
+// Turn an agent-supplied path into a safe relative path, or throw. Blocks absolute paths,
+// `..`, hidden files, .env files and dependency folders; allows app source and a few configs.
 function relativeSource(input) {
   if (
     typeof input !== 'string' ||
@@ -94,6 +115,8 @@ function relativeSource(input) {
   return input;
 }
 
+// Walk a path one segment at a time and refuse any symlink, so a link can't point a tool
+// outside the workspace (for example at ~/.ssh).
 async function noSymlinks(root, relative, { missing = false } = {}) {
   let current = root;
   for (const segment of relative.split('/')) {
@@ -124,18 +147,22 @@ export function subprocessEnvironment(home, inherited = process.env) {
   return environment;
 }
 
+// Strip terminal colors and keep only the tail of command output, which is what the model sees.
 function safeOutput(output) {
   return String(output)
     .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '')
     .slice(-MAX_OUTPUT_BYTES);
 }
 
+// Write JSON to a temp file, then rename it into place. A rename is atomic, so a crash leaves
+// either the old file or the new one, never a half-written file.
 async function atomicJson(file, value) {
   const temporary = `${file}.${randomUUID()}.tmp`;
   await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' });
   await rename(temporary, file);
 }
 
+// Run a fixed executable with fixed arguments (no shell) and report pass/fail plus output.
 function command(file, args, options) {
   const started = Date.now();
   return new Promise((resolve) => {
@@ -157,6 +184,7 @@ function command(file, args, options) {
   });
 }
 
+/** Create the tool set for one run. All paths below are inside that run's folder. */
 export async function createWorkspaceTools({
   runDir,
   foundationDir,
@@ -177,16 +205,16 @@ export async function createWorkspaceTools({
   await mkdir(requestedRun, { recursive: true });
   const run = await realpath(requestedRun);
   if (!inside(runs, run)) throw new Error('Run directory escaped the allowed tree.');
-  const workspace = path.join(run, 'workspace');
-  const marker = path.join(run, 'workspace.json');
-  const generationJournal = path.join(run, 'generation.json');
-  const staging = path.join(run, 'generation-staging');
+  const workspace = path.join(run, 'workspace'); // the finished app
+  const marker = path.join(run, 'workspace.json'); // which app identity the workspace holds
+  const generationJournal = path.join(run, 'generation.json'); // write-ahead journal: building | complete
+  const staging = path.join(run, 'generation-staging'); // where the app is built before it's moved in
   const injectionMarker = path.join(run, 'failure-injected.json');
   const home = path.join(run, 'process-home');
   await mkdir(home, { recursive: true });
   const env = subprocessEnvironment(home);
   const emit = async (type, data) => onEvent(type, data);
-  let acceptanceSource;
+  let acceptanceSource; // the approved planner test file, set by the orchestrator after approval
 
   async function hasWorkspace() {
     try {
@@ -256,6 +284,22 @@ export async function createWorkspaceTools({
     };
   }
 
+  /**
+   * Create the app, safely repeatable after a crash at any point.
+   *
+   * Order of operations:
+   *   1. journal = "building"   (written before anything else)
+   *   2. build the app into generation-staging/
+   *   3. journal = "complete"
+   *   4. rename generation-staging/ → workspace/   (atomic)
+   *   5. write workspace.json
+   *
+   * On a retry, the journal and the folders on disk say exactly where the last attempt stopped:
+   *   - workspace exists with matching identity      → reuse it, don't build a second app
+   *   - crashed between 4 and 5                      → journal says complete, so finish step 5
+   *   - crashed during 2                             → staging is half-built: delete it and rebuild
+   *   - asked for a different name/slug than before  → refuse; one run = one app
+   */
   async function generate({ name, slug }) {
     if (typeof name !== 'string' || !/^[\p{L}\p{N}][\p{L}\p{N} &.\-]{0,59}$/u.test(name))
       throw new Error(
@@ -263,6 +307,8 @@ export async function createWorkspaceTools({
       );
     if (typeof slug !== 'string' || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 50)
       throw new Error('App slug must be a lowercase slug of up to 50 characters.');
+
+    // Read the journal from any previous attempt. A different identity is refused outright.
     let journal;
     try {
       await noSymlinks(run, 'generation.json');
@@ -272,6 +318,8 @@ export async function createWorkspaceTools({
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
+
+    // The app already exists: reuse it (after confirming it is the same app).
     if (await hasWorkspace()) {
       let prior;
       try {
@@ -288,6 +336,9 @@ export async function createWorkspaceTools({
         throw new Error('This run already generated a different app. Use a new run for a new identity.');
       return { workspace, name, slug, reused: true };
     }
+
+    // A leftover staging folder means a previous attempt crashed mid-build. Delete only that
+    // folder (the runtime owns it); never delete a completed workspace.
     try {
       await noSymlinks(run, 'generation-staging');
       if (!journal) throw new Error('Unrecognized staging directory; use a new run directory.');
@@ -296,6 +347,8 @@ export async function createWorkspaceTools({
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
+
+    // Steps 1–5 from the comment above.
     await atomicJson(generationJournal, { name, slug, status: 'building' });
     const result = await command(
       process.execPath,
@@ -322,7 +375,12 @@ export async function createWorkspaceTools({
     return { workspace, name, slug, reused: false };
   }
 
-  // The approved planner tests are rewritten from the specification, so workspace edits cannot weaken them.
+  /*
+   * Acceptance tests. The planner writes them before any code exists, the human approves them
+   * as part of the spec, and the orchestrator hands the approved source in here. The file is
+   * rewritten from that source at generation and before every check, so nothing done inside
+   * the workspace can weaken it.
+   */
   function setAcceptanceTests(source) {
     if (typeof source !== 'string' || !source || Buffer.byteLength(source) > MAX_FILE_BYTES)
       throw new Error('Approved acceptance tests are required.');
@@ -338,11 +396,18 @@ export async function createWorkspaceTools({
     return true;
   }
 
+  // generate_app = create the app, then install the approved tests so the builder can read them.
   async function generateWithTests(args) {
     const result = await generate(args);
     return { ...result, acceptanceTests: (await installAcceptanceTests()) ? ACCEPTANCE_TESTS : null };
   }
 
+  /**
+   * The builder's only way to change code. Allowed: .ts/.tsx under src/features/venture/ and
+   * the tab route file. Refused: tests (including the acceptance tests), configs, type stubs.
+   * In demo mode, the first feature write gets one deliberate, labeled TypeScript error so
+   * the repair loop can be shown.
+   */
   async function writeSource({ path: input, content }) {
     const relative = relativeSource(input);
     if (!(await hasWorkspace())) throw new Error('Generate the app before writing feature files.');
@@ -386,6 +451,13 @@ export async function createWorkspaceTools({
     return { path: relative, bytes: Buffer.byteLength(content), injectedFailure: injected };
   }
 
+  /**
+   * run_checks: three real checks, always the same commands, whatever the agents wrote.
+   *   1. generated-source-typecheck   strict TypeScript over the whole app
+   *   2. foundation-regression-tests  the foundation's own tests still pass
+   *   3. acceptance-tests             the planner's approved tests pass against the builder's code
+   * The result goes back to the agent; a failure sends the builder into the repair loop.
+   */
   async function verify() {
     if (!(await hasWorkspace())) throw new Error('Generate the app before running checks.');
     const dependencyRoot = path.join(foundation, 'node_modules');
@@ -397,6 +469,9 @@ export async function createWorkspaceTools({
     } catch {
       throw new Error('Foundation dependencies are missing. Run npm install in the foundation manually.');
     }
+
+    // The app uses the foundation's installed packages through one symlink. If anything else
+    // is sitting at node_modules (something the agent could have planted), refuse to run.
     const link = path.join(workspace, 'node_modules');
     try {
       const info = await lstat(link);
@@ -416,6 +491,7 @@ export async function createWorkspaceTools({
         { cwd: workspace, env },
       )),
     });
+    // Jest config is passed inline, so a jest.config file in the workspace is never used.
     const jestConfig = JSON.stringify({
       rootDir: workspace,
       preset: path.join(dependencyRoot, 'jest-expo'),
@@ -438,6 +514,8 @@ export async function createWorkspaceTools({
       baselineTests.splice(baselineTests.indexOf(petTest), 1);
     }
     checks.push({ name: 'foundation-regression-tests', ...(await runJest(baselineTests)) });
+
+    // Restore the approved test file first, then run it. Missing tests count as a failure.
     if (await installAcceptanceTests()) {
       checks.push({ name: 'acceptance-tests', ...(await runJest([ACCEPTANCE_TESTS])) });
     } else
@@ -457,6 +535,7 @@ export async function createWorkspaceTools({
     };
   }
 
+  // Tool name → implementation. `execute` rejects unknown tools and unexpected arguments.
   const handlers = {
     generate_app: generateWithTests,
     list_files: listSources,
