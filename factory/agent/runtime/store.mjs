@@ -1,6 +1,17 @@
+/**
+ * Run checkpoints on disk: .agent-runs/<id>/state.json, plus a lock file per run.
+ *
+ * Two problems this solves:
+ *  - Parallel agents save at the same moment. Saves are queued per run and each one writes a
+ *    temp file, then renames it over state.json. A rename is atomic, so a crash never leaves a
+ *    half-written checkpoint.
+ *  - Two processes resume the same run. `lock` creates run.lock exclusively; a lock left behind
+ *    by a dead process is detected by its PID and cleared.
+ */
 import { mkdir, readFile, readdir, rename, writeFile, open, unlink } from 'node:fs/promises';
 import path from 'node:path';
 
+// Run IDs become folder names, so only allow safe characters (no `..` or slashes).
 export const isRunId = (value) => typeof value === 'string' && /^[a-zA-Z0-9-]{8,80}$/.test(value);
 
 export class RunStore {
@@ -12,6 +23,7 @@ export class RunStore {
     if (!isRunId(id)) throw new Error('Invalid run ID.');
     return path.join(this.root, id);
   }
+  // Queue this save behind any in-flight save for the same run, then write temp → rename.
   async save(state) {
     const directory = this.directory(state.id);
     // Capture a consistent snapshot before the write is queued by parallel agents.
@@ -51,6 +63,7 @@ export class RunStore {
     );
     return runs.filter(Boolean).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
+  // Exclusive per-run lock. Returns a release function.
   async lock(id) {
     const file = path.join(this.directory(id), 'run.lock');
     await mkdir(this.directory(id), { recursive: true });
@@ -64,6 +77,7 @@ export class RunStore {
         };
       } catch (error) {
         if (error.code !== 'EEXIST') throw error;
+        // Lock exists: if its owner process is still alive, refuse; if it died, clear and retry.
         const pid = Number(await readFile(file, 'utf8'));
         try {
           process.kill(pid, 0);
