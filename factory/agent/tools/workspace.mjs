@@ -422,6 +422,12 @@ export async function createWorkspaceTools({
       testPathIgnorePatterns: ['/node_modules/', '/ios/'],
       cacheDirectory: path.join(run, 'jest-cache'),
     });
+    const runJest = (testPaths) =>
+      command(
+        process.execPath,
+        [jest, '--config', jestConfig, '--runInBand', '--watch=false', '--runTestsByPath', ...testPaths],
+        { cwd: workspace, env },
+      );
     // The pet module is optional and may not be present in the foundation.
     const baselineTests = [...FOUNDATION_TESTS];
     const petTest = 'src/features/pet/engine.test.ts';
@@ -431,31 +437,9 @@ export async function createWorkspaceTools({
       if (error.code !== 'ENOENT') throw error;
       baselineTests.splice(baselineTests.indexOf(petTest), 1);
     }
-    checks.push({
-      name: 'foundation-regression-tests',
-      ...(await command(
-        process.execPath,
-        [jest, '--config', jestConfig, '--runInBand', '--watch=false', '--runTestsByPath', ...baselineTests],
-        { cwd: workspace, env },
-      )),
-    });
+    checks.push({ name: 'foundation-regression-tests', ...(await runJest(baselineTests)) });
     if (await installAcceptanceTests()) {
-      checks.push({
-        name: 'acceptance-tests',
-        ...(await command(
-          process.execPath,
-          [
-            jest,
-            '--config',
-            jestConfig,
-            '--runInBand',
-            '--watch=false',
-            '--runTestsByPath',
-            ACCEPTANCE_TESTS,
-          ],
-          { cwd: workspace, env },
-        )),
-      });
+      checks.push({ name: 'acceptance-tests', ...(await runJest([ACCEPTANCE_TESTS])) });
     } else
       checks.push({
         name: 'acceptance-tests',
