@@ -7,8 +7,8 @@ import { createWorkspaceTools } from '../tools/workspace.mjs';
 import { digest, validate, validateReferences } from './validation.mjs';
 import { RESEARCH_ROLES } from '../agents/growth.mjs';
 import { createIntegrationRegistry } from '../tools/mcp/client.mjs';
-import { renderCreativePack, validateCreativePack } from '../creatives/render.mjs';
-import { createLaunchArchive } from '../launch-pack.mjs';
+import { renderCreativePack, validateCreativePack } from '../outputs/creatives/render.mjs';
+import { createLaunchArchive } from '../outputs/launch-pack.mjs';
 import { SAMPLES } from '../samples.mjs';
 import { loadCuratedResearch, CURATED_VERSION } from '../research/index.mjs';
 

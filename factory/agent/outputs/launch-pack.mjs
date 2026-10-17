@@ -1,7 +1,7 @@
 import { constants } from 'node:fs';
 import { lstat, open, realpath } from 'node:fs/promises';
 import path from 'node:path';
-import { RESEARCH_ROLES } from './agents/growth.mjs';
+import { RESEARCH_ROLES } from '../agents/growth.mjs';
 
 const crcTable = Array.from({ length: 256 }, (_, index) => {
   let value = index;
