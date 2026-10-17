@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { demoArtifact, artifactSchemas, ROLES } from './roles.mjs';
-import { validate, validateReferences } from './runtime/validation.mjs';
+import { validate, validateReferences } from '../runtime/validation.mjs';
 import { AWARENESS_STAGES, RESEARCH_ROLES, growthDemoArtifact } from './growth.mjs';
 
 function artifacts() {

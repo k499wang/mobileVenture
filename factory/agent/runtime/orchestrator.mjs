@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { RunStore } from './store.mjs';
-import { ROLES, artifactSchemas } from '../roles.mjs';
-import { runAgent } from '../provider.mjs';
+import { ROLES, artifactSchemas } from '../agents/roles.mjs';
+import { runAgent } from '../agents/provider.mjs';
 import { createWorkspaceTools } from '../tools.mjs';
 import { digest, validate, validateReferences } from './validation.mjs';
-import { RESEARCH_ROLES } from '../growth.mjs';
+import { RESEARCH_ROLES } from '../agents/growth.mjs';
 import { createIntegrationRegistry } from '../mcp/client.mjs';
 import { renderCreativePack, validateCreativePack } from '../creatives/render.mjs';
 import { createLaunchArchive } from '../launch-pack.mjs';

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { AWARENESS_STAGES, RESEARCH_ROLES } from '../growth.mjs';
+import { AWARENESS_STAGES, RESEARCH_ROLES } from '../agents/growth.mjs';
 
 /** Small runtime validator for the deliberately limited artifact-schema dialect. */
 export function validate(schema, value, location = '$') {

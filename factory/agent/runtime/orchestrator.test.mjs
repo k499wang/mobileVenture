@@ -6,8 +6,8 @@ import path from 'node:path';
 import { VentureStudio } from './orchestrator.mjs';
 import { workspaceToolDefinitions } from '../tools.mjs';
 import { validate, validateReferences, digest } from './validation.mjs';
-import { artifactSchemas, demoArtifact } from '../roles.mjs';
-import { runAgent } from '../provider.mjs';
+import { artifactSchemas, demoArtifact } from '../agents/roles.mjs';
+import { runAgent } from '../agents/provider.mjs';
 
 async function harness(options = {}) {
   const runsDir = await mkdtemp(path.join(os.tmpdir(), 'venture-state-test-'));
