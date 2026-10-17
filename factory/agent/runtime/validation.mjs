@@ -1,7 +1,20 @@
+/**
+ * The submission gate. Every artifact an agent submits passes through here before it is
+ * accepted, so these rules hold no matter what the model says:
+ *
+ *  - `validate`                 the artifact matches its role's schema exactly
+ *  - `validateReferences`       evidence rules:
+ *       research: each evidence URL must be one the search/MCP tools actually returned
+ *       analysis, spec, features: must cite evidence IDs that exist
+ *  - `validateAcceptanceTests`  the planner's tests cover every acceptance criterion
+ *  - `digest`                   SHA-256 of an artifact; the spec hash is what a human approves
+ *
+ * A thrown error is sent back to the agent as feedback, and it must fix the artifact.
+ */
 import { createHash } from 'node:crypto';
 import { AWARENESS_STAGES, RESEARCH_ROLES } from '../agents/growth.mjs';
 
-/** Small runtime validator for the deliberately limited artifact-schema dialect. */
+/** Check a value against a role schema (objects, arrays, strings, numbers, enums, limits). Unknown fields are rejected. */
 export function validate(schema, value, location = '$') {
   if (schema.type === 'object') {
     if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -70,11 +83,17 @@ export function digest(value) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
 }
 
+/**
+ * Evidence and reference rules for one role's artifact.
+ * `sources` = URLs actually retrieved by this role's tools during the run.
+ */
 export function validateReferences(role, artifact, artifacts, { mode, sources = [] }) {
   const evidence = RESEARCH_ROLES.flatMap((id) => artifacts[id]?.evidence ?? []);
   const known = new Set(evidence.map((item) => item.id));
   if (!RESEARCH_ROLES.includes(role) && known.size !== evidence.length)
     throw new Error('Evidence IDs collide across research sources.');
+  // Research roles: every evidence record needs a real URL, and in live/curated mode that URL
+  // must be one the tools actually returned. This is what blocks invented sources.
   if (RESEARCH_ROLES.includes(role)) {
     if (!artifact.evidence.length)
       throw new Error('Research must include evidence or fail explicitly; empty evidence cannot advance.');
@@ -102,6 +121,7 @@ export function validateReferences(role, artifact, artifacts, { mode, sources = 
         );
     }
   }
+  // Decisions (opportunities, specs, features, personas, creatives) must cite known evidence IDs.
   const check = (ids) => {
     if (!ids?.length) throw new Error('A decision must reference at least one evidence record.');
     for (const id of ids) if (!known.has(id)) throw new Error(`Unknown evidence reference: ${id}`);
